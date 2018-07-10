@@ -24,9 +24,8 @@ namespace TicTacToe
                     Console.WriteLine("you lose.");
                     break;
                 }
-                
-                int x, y;
-                getXY(out x, out y);
+
+                getXY(out int x, out int y);
 
                 updateBoard(x, y, 'x');
 
