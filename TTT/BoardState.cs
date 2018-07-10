@@ -24,6 +24,8 @@ namespace TTT
         public int alpha { get; set; }
         public int beta { get; set; }
         public int winner { get; set; }
+        public BoardState nextMove { get; set; }
+
 
         public BoardState(char[,] board, int turn, int depth, int alpha, int beta)
         {
@@ -34,7 +36,12 @@ namespace TTT
             this.beta = beta;
         }
 
-        public BoardState():this(new char[3, 3] { { '_', '_', '_' }, { '_', '_', '_' }, { '_', '_', '_' } }, 0, 0, 0, 0)
+        //public BoardState() : this(new char[3, 3] { { '_', '_', '_' }, { '_', '_', '_' }, { '_', '_', '_' } }, 0, 0, 0, 0)
+        //{
+
+        //}
+
+        public BoardState() : this(new char[3, 3] { { 'x', 'o', 'x' }, { 'o', 'x', '_' }, { 'o', '_', '_' } }, 0, 0, 0, 0)
         {
 
         }
@@ -80,17 +87,17 @@ namespace TTT
             {
                 if (w == 'o')
                 {
-                    Console.WriteLine("you win.");
-                    return 0;
+                    //Console.WriteLine("you win.");
+                    return -10;
                 }
                 if (w == 'x')
                 {
-                    Console.WriteLine("you lose.");
-                    return 0;
+                    //Console.WriteLine("you lose.");
+                    return 10;
                 }
                 if (w == 't')
                 {
-                    Console.WriteLine("Tie");
+                    //Console.WriteLine("Tie");
                     return 0;
                 }
             }
@@ -100,11 +107,47 @@ namespace TTT
             // Max,  computer's turn
             if(turn == 0)
             {
+                int maxInChild = int.MinValue;
                 foreach(var move in availableMoves)
                 {
                     BoardState childState = new BoardState(newBoard(move, 'x'), changeTurn(turn), depth + 1, alpha, beta);
                     int childScore = childState.getScore();
+
+                    if(childScore > maxInChild)
+                    {
+                        maxInChild = childScore;
+                        alpha = maxInChild;
+                        nextMove = childState;
+                    }
+
+                    if (alpha >= beta)
+                        break;
                 }
+                return maxInChild;
+            }
+
+
+            //Min, player's turn
+            else if(turn == 1)
+            {
+                int minInChild = int.MaxValue;
+                foreach(var move in availableMoves)
+                {
+                    BoardState childState = new BoardState(newBoard(move, 'o'), changeTurn(turn), depth + 1, alpha, beta);
+                    int childScore = childState.getScore();
+
+                    if(childScore < minInChild)
+                    {
+                        minInChild = childScore;
+                        beta = minInChild;
+                        nextMove = childState;
+                    }
+
+                    if (alpha >= beta)
+                        break;
+                }
+
+                return minInChild;
             }
 
 
@@ -118,7 +161,12 @@ namespace TTT
 
         public char[,] newBoard(Pos p, char c)
         {
-            char[,] newboard = board;
+            //char[,] newboard = new char[3,3];
+            //for (int i = 0; i < 3; i++)
+            //    for (int j = 0; j < 3; j++)
+            //        newboard[i, j] = board[i, j];
+
+            char[,] newboard = (char[,])board.Clone();
             newboard[p.x, p.y] = c;
             return newboard;
         }
@@ -143,7 +191,7 @@ namespace TTT
             //check rows
             for (int i = 0; i < 3; i++)
             {
-                if (board[i, 0] == board[i, 1] && board[i, 1] == board[i, 2])
+                if (board[i, 0] == board[i, 1] && board[i, 1] == board[i, 2] && board[i, 0] != '_')
                 {
                     winner = board[i, 0];
                     return true;
@@ -154,7 +202,7 @@ namespace TTT
             //check cols
             for (int i = 0; i < 3; i++)
             {
-                if (board[0, i] == board[1, i] && board[2, i] == board[1, i])
+                if (board[0, i] == board[1, i] && board[2, i] == board[1, i] && board[0, i] != '_')
                 {
                     winner = board[0, i];
                     return true;
@@ -163,12 +211,12 @@ namespace TTT
             }
 
             //check diagonal
-            if (board[0, 0] == board[1, 1] && board[1, 1] == board[2, 2])
+            if (board[0, 0] == board[1, 1] && board[1, 1] == board[2, 2] && board[0,0] != '_')
             {
                 winner = board[0, 0];
                 return true;
             }
-            if (board[2, 0] == board[1, 1] && board[1, 1] == board[0, 2])
+            if (board[2, 0] == board[1, 1] && board[1, 1] == board[0, 2] && board[2, 0] != '_')
             {
                 winner = board[2, 0];
                 return true;
@@ -176,7 +224,7 @@ namespace TTT
 
 
             // no available move, there is a tie
-            if (getAvailableMoves().Any())
+            if (!getAvailableMoves().Any())
             {
                 winner = 't';
                 return true;
@@ -187,6 +235,12 @@ namespace TTT
             return false;
         }
         
+
+        public void move()
+        {
+            board = nextMove.board;
+            drawBoard();
+        }
 
     }
 }
