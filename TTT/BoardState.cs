@@ -30,8 +30,8 @@ namespace TTT
         public BoardState(char[,] board, int turn, int depth, int alpha, int beta)
         {
             this.board = board;
-            this.turn = turn;
-            this.depth = depth;
+            this.turn = turn;  //0-max-computer  1-min-player
+            this.depth = depth;   // 0-root
             this.alpha = alpha;
             this.beta = beta;
         }
@@ -73,7 +73,7 @@ namespace TTT
             {
                 Console.WriteLine("Invalid move. Please enter again.");
                 
-                updateBoard(getInputPos(), 'x');
+                updateBoard(getInputPos(), 'o');
             }
             else
             {
