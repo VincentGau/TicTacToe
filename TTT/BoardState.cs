@@ -36,15 +36,15 @@ namespace TTT
             this.beta = beta;
         }
 
-        //public BoardState() : this(new char[3, 3] { { '_', '_', '_' }, { '_', '_', '_' }, { '_', '_', '_' } }, 0, 0, 0, 0)
-        //{
-
-        //}
-
-        public BoardState() : this(new char[3, 3] { { 'x', 'o', 'x' }, { 'o', 'x', '_' }, { 'o', '_', '_' } }, 0, 0, 0, 0)
+        public BoardState() : this(new char[3, 3] { { '_', '_', '_' }, { '_', '_', '_' }, { '_', '_', '_' } }, 0, 0, int.MinValue, int.MaxValue)
         {
 
         }
+
+        //public BoardState() : this(new char[3, 3] { { 'x', 'o', '_' }, { 'x', 'o', '_' }, { '_', '_', '_' } }, 0, 0, int.MinValue, int.MaxValue)
+        //{
+
+        //}
 
         public Pos getInputPos()
         {
@@ -88,12 +88,12 @@ namespace TTT
                 if (w == 'o')
                 {
                     //Console.WriteLine("you win.");
-                    return -10;
+                    return depth-1000;
                 }
                 if (w == 'x')
                 {
                     //Console.WriteLine("you lose.");
-                    return 10;
+                    return 1000-depth;
                 }
                 if (w == 't')
                 {
