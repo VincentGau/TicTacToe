@@ -103,6 +103,8 @@ namespace TTT
             }
 
             List<Pos> availableMoves = getAvailableMoves();
+            // 打乱顺序 避免每次都下一样的位置
+            availableMoves = shuffleList(availableMoves);
 
             // Max,  computer's turn
             if(turn == 0)
@@ -240,6 +242,19 @@ namespace TTT
         {
             board = nextMove.board;
             drawBoard();
+        }
+
+        public List<T> shuffleList<T>(List<T> l)
+        {
+            List<T> result = new List<T>();
+            Random random = new Random();
+
+            foreach(var item in l)
+            {
+                result.Insert(random.Next(result.Count), item);
+            }
+
+            return result;
         }
 
     }
