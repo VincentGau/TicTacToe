@@ -1,4 +1,8 @@
-﻿body {
+﻿html{
+    font-size:12px;
+}
+
+body {
     padding-top: 50px;
     padding-bottom: 20px;
 }
@@ -21,4 +25,34 @@ input,
 select,
 textarea {
     max-width: 280px;
+}
+
+.chessboard{
+    width:40rem;
+    height:40rem;
+    margin:0 auto;
+    position:relative;
+    background-image:url(images/chessboard.jpg);
+    background-size:100%;
+}
+
+.chess {
+    width: 2.5rem;
+    height: 2.5rem;
+    line-height: 2.5rem;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    position: absolute;
+    display: block;
+}
+
+.white{
+    color:black;
+    background-color:white;
+}
+
+.black{
+    color:white;
+    background-color:black;
 }
