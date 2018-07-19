@@ -2,7 +2,7 @@
     var oEvent = ev || event;
     var x = oEvent.clientX;
     var y = oEvent.clientY;
-    alert(oEvent.clientX + '，' + oEvent.clientY);//     IE浏览器兼容
+    alert(oEvent.clientX + '，' + oEvent.clientY);
 
     var posX = Math.floor((x - topleftX + 15) / 30);
     var posY = Math.floor((y - topleftY + 15) / 30);
@@ -23,7 +23,6 @@
         newChess.innerHTML = content;
         board.appendChild(newChess);
     }
-    
 };
 
 var w = document.documentElement.clientWidth;
@@ -32,4 +31,3 @@ var h = document.documentElement.clientHeight;
 var topleftX = w / 2 - 31*7;
 var topleftY = 133;
 console.log(topleftX + " - " + topleftY)
-//alert(w + " " + h);
