@@ -13,6 +13,8 @@ namespace HakuGoCmd
 
         public const int searchDepth = 4;
 
+        public const int MOVESIZE = 5;
+
         // 成五
         public const int FIVE = 1000000;
 

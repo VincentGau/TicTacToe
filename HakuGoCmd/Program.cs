@@ -9,7 +9,7 @@ namespace HakuGoCmd
 
     class Program
     {
-        
+
         static void Main(string[] args)
         {
             BoardState bs = new BoardState();
@@ -67,12 +67,12 @@ namespace HakuGoCmd
                 }
                 else
                 {
-                    if(winningPath[0].x == 99)
+                    if (winningPath[0].x == 99)
                     {
                         Console.WriteLine("Tie");
                         break;
                     }
-                    if(bs.board[winningPath[0].x, winningPath[0].y]  == Helper.AIMark)
+                    if (bs.board[winningPath[0].x, winningPath[0].y] == Helper.AIMark)
                     {
                         Console.WriteLine("You lose");
                         break;
@@ -192,40 +192,51 @@ namespace HakuGoCmd
             {
                 if (board[result[0].x, result[0].y] == 'x')
                 {
-                    Console.WriteLine("winner is x.");
-                    return Helper.FIVE;
+                    //Console.WriteLine("winner is x.");
+                    return Helper.FIVE - depth;
                 }
 
                 if (board[result[0].x, result[0].y] == 'o')
                 {
-                    Console.WriteLine("winner is o.");
-                    return -Helper.FIVE;
+                    //Console.WriteLine("winner is o.");
+                    return -Helper.FIVE + depth;
                 }
             }
 
             if (result.Count == 1)
             {
-                Console.WriteLine("Tie.");
+                //Console.WriteLine("Tie.");
                 return 0;
             }
 
             List<Pos> availableMoves = getAvailableMoves();
+            availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE);
 
-            if (depth > Helper.searchDepth || checkFinished(board).Any())
-            {
-                return evaluate(board);
-            }
+            //if (depth >= Helper.searchDepth || checkFinished(board).Any())
+            //{
+            //    int value = evaluate(board);
+            //    return value;
+            //}
 
             // Max, computer's turn 
             if (turn == 0)
             {
-                
+
                 int maxInChild = int.MinValue;
                 foreach (var move in availableMoves)
                 {
+                    int childScore;
                     BoardState childState = new BoardState(newBoard(move, 'x'), changeTurn(turn), depth + 1, alpha, beta);
-                    int childScore = childState.minimax();
-
+                    if (depth >= Helper.searchDepth || checkFinished(childState.board).Count == 5)
+                    {
+                        childScore = evaluate(childState.board);
+                        nextMove = childState;
+                        return childScore;
+                    }
+                    else
+                    {
+                        childScore = childState.minimax();
+                    }
                     if (childScore > maxInChild)
                     {
                         maxInChild = childScore;
@@ -234,7 +245,7 @@ namespace HakuGoCmd
                     }
 
                     if (alpha >= beta)
-                        break;
+                        return alpha;
                 }
                 return maxInChild;
             }
@@ -242,12 +253,23 @@ namespace HakuGoCmd
             //Min, player's turn
             else if (turn == 1)
             {
-                
+
                 int minInChild = int.MaxValue;
                 foreach (var move in availableMoves)
                 {
                     BoardState childState = new BoardState(newBoard(move, 'o'), changeTurn(turn), depth + 1, alpha, beta);
-                    int childScore = childState.minimax();
+                    int childScore;
+                    if (depth >= Helper.searchDepth || checkFinished(childState.board).Count == 5)
+                    {
+                        childScore = evaluate(childState.board);
+                        nextMove = childState;
+                        return childScore;
+                    }
+
+                    else
+                    {
+                        childScore = childState.minimax();
+                    }
 
                     if (childScore < minInChild)
                     {
@@ -257,7 +279,7 @@ namespace HakuGoCmd
                     }
 
                     if (alpha >= beta)
-                        break;
+                        return beta;
                 }
 
                 return minInChild;
@@ -283,39 +305,72 @@ namespace HakuGoCmd
             // 向八个方向检查盘面
             List<Pos> directions = new List<Pos>() { up, down, left, right, upleft, upright, downleft, downright };
 
+
+            // 成五
+            for (int i = 0; i < 15; i++)
+            {
+                for (int j = 0; j < 15; j++)
+                {
+                    foreach (var direction in directions)
+                    {
+                        int x = i + direction.x * 5;
+                        int y = j + direction.y * 5;
+                        if (x < 0 || x > 14 || y < 0 || y > 14)
+                        {
+                            continue;
+                        }
+
+                        for (int range = 1; range < 5; range++)
+                        {
+                            if (givenBoard[i, j] != givenBoard[i + direction.x * range, j + direction.y * range])
+                            {
+                                break;
+                            }
+                            if (range == 4)
+                            {
+                                if (givenBoard[i, j] == Helper.AIMark)
+                                    return Helper.FIVE;
+                                if (givenBoard[i, j] == Helper.playerMark)
+                                    return -Helper.FIVE;
+                            }
+                        }
+                    }
+                }
+            }
+
             // 活四
             for (int i = 0; i < 15; i++)
             {
                 for (int j = 0; j < 15; j++)
                 {
-                    foreach(var direction in directions)
+                    foreach (var direction in directions)
                     {
                         // 如果延伸段超过边界 则不可能再有活四 
                         int x = i + direction.x * 5;
                         int y = j + direction.y * 5;
-                        if(x < 0 || x > 14 || y < 0 || y > 14)
+                        if (x < 0 || x > 14 || y < 0 || y > 14)
                         {
                             continue;
                         }
                         if (givenBoard[i, j] == '_' && givenBoard[i + direction.x * 5, j + direction.y * 5] == '_')
                         {
-                            for(int range = 2; range <= 4; range++)
+                            for (int range = 2; range <= 4; range++)
                             {
                                 if (givenBoard[i + direction.x, j + direction.y] != givenBoard[i + direction.x * range, j + direction.y * range])
                                     break;
-                                    
-                                if(range == 4)
+
+                                if (range == 4)
                                 {
-                                    if(givenBoard[i + direction.x, j + direction.y] == Helper.AIMark)
+                                    if (givenBoard[i + direction.x, j + direction.y] == Helper.AIMark)
                                         return Helper.FOUR;
                                     if (givenBoard[i + direction.x, j + direction.y] == Helper.playerMark)
                                         return -Helper.FOUR;
                                 }
                             }
-                            
+
                         }
                     }
-                    
+
                 }
             }
 
@@ -352,11 +407,23 @@ namespace HakuGoCmd
             return 0;
         }
 
+        /// <summary>
+        /// 交换落子轮
+        /// </summary>
+        /// <param name="turn"></param>
+        /// <returns></returns>
         private int changeTurn(int turn)
         {
             return turn == 1 ? 0 : 1;
         }
 
+
+        /// <summary>
+        /// 根据落子点p 以及落子方c 生成新的盘面
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public char[,] newBoard(Pos p, char c)
         {
             //char[,] newboard = new char[3,3];
@@ -369,6 +436,7 @@ namespace HakuGoCmd
             return newboard;
         }
 
+        // 可行的落子点，已落子点周围一圈（或者N圈，通过hasNeighbor 方法的第三个参数进行设置）都认为是可行点；
         public List<Pos> getAvailableMoves()
         {
             List<Pos> result = new List<Pos>();
@@ -379,12 +447,12 @@ namespace HakuGoCmd
                 {
                     if (board[i, j] == '_')
                     {
-                        
-                        if (hasNeighbor(i, j, 2))
+
+                        if (hasNeighbor(i, j, 1))
                         {
                             result.Add(new Pos(i, j));
                         }
-                       
+
                     }
 
                 }
@@ -393,16 +461,114 @@ namespace HakuGoCmd
             return result;
         }
 
-        public bool hasNeighbor(int i , int j, int neighborRange)
+
+        // 缩小可行落子点的范围，选取落子后估值最大的若干个点进行扩展
+        public List<Pos> shrinkAvailableMoves(List<Pos> rawAvailableMoves, int sizeAfter)
+        {
+            return topK(rawAvailableMoves, sizeAfter);
+        }
+
+
+        /// <summary>
+        /// 返回估值最高的K个落子点
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="K"></param>
+        /// <returns></returns>
+        public List<Pos> topK(List<Pos> list, int K)
+        {
+            List<Pos> result = new List<Pos>();
+
+            if( K >= list.Count)
+            {
+                return list;
+            }
+
+            for(int i = 0; i < K; i++)
+            {
+                result.Add(list[i]);
+            }
+
+            buildMinHeap(result);
+
+            for(int j = K; j < list.Count; j++)
+            {
+                var pos = list[j];
+                var minPos = result[0];
+                int value = evaluate(newBoard(pos, Helper.AIMark));
+                int min = evaluate(newBoard(minPos, Helper.AIMark));
+
+                if(value > min)
+                {
+                    result[0] = pos;
+                    heapifyMin(result, 0, K);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// 建立最小堆
+        /// </summary>
+        /// <param name="list"></param>
+        public void buildMinHeap(List<Pos> list)
+        {
+            for (int i = list.Count / 2 - 1; i > 0; i--)
+            {
+                heapifyMin(list, i, list.Count);
+            }
+        }
+
+        /// <summary>
+        /// 调整最小堆
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="index"></param>
+        /// <param name="size"></param>
+        public void heapifyMin(List<Pos> list, int index, int size)
+        {
+            int left = 2 * index + 1;
+            int right = 2 * index + 2;
+            int min = index;
+
+            var leftBoard = newBoard(list[left], Helper.AIMark);
+            var rightBoard = newBoard(list[right], Helper.AIMark);
+            var minBoard = newBoard(list[min], Helper.AIMark);
+
+            int leftValue = evaluate(leftBoard);
+            int rightValue = evaluate(rightBoard);
+            int maxValue = evaluate(minBoard);
+
+            if (left < size && leftValue > maxValue)
+            {
+                min = left;
+            }
+
+            if (right < size && rightValue > maxValue)
+            {
+                min = right;
+            }
+
+            if (min != index)
+            {
+                var temp = list[index];
+                list[min] = temp;
+                list[index] = list[min];
+                heapifyMin(list, min, size);
+            }
+        }
+
+        public bool hasNeighbor(int i, int j, int neighborRange)
         {
             int leftbound = (j - neighborRange) > 0 ? (j - neighborRange) : 0;
             int rightbound = (j + neighborRange) < 15 ? (j + neighborRange) : 0;
             int topbound = (i - neighborRange) > 0 ? (i - neighborRange) : 0;
-            int bottombound = (i + neighborRange) <15 ? (i + neighborRange) : 0;
+            int bottombound = (i + neighborRange) < 15 ? (i + neighborRange) : 0;
 
-            for(int m = topbound; m <= bottombound; m++)
+            for (int m = topbound; m <= bottombound; m++)
             {
-                for(int n = leftbound; n <= rightbound; n++)
+                for (int n = leftbound; n <= rightbound; n++)
                 {
                     if (m == i && n == j)
                         continue;
@@ -449,11 +615,11 @@ namespace HakuGoCmd
                         }
                         if (k == 4)
                         {
-                            Console.WriteLine("{0} is winner.", givenBoard[i, j]);
+                            //Console.WriteLine("{0} is winner.", givenBoard[i, j]);
                             for (int jj = j; jj < j + 5; jj++)
                             {
                                 winningPath.Add(new Pos(i, jj));
-                                Console.WriteLine("({0}, {1}) ", i, jj);
+                                //Console.WriteLine("({0}, {1}) ", i, jj);
                             }
                             return winningPath;
                         }
@@ -479,11 +645,11 @@ namespace HakuGoCmd
                         }
                         if (k == 4)
                         {
-                            Console.WriteLine("{0} is winner.", givenBoard[i, j]);
+                            //Console.WriteLine("{0} is winner.", givenBoard[i, j]);
                             for (int ii = i; ii < i + 5; ii++)
                             {
                                 winningPath.Add(new Pos(ii, j));
-                                Console.WriteLine("({0}, {1}) ", ii, j);
+                                //Console.WriteLine("({0}, {1}) ", ii, j);
                             }
                             return winningPath;
                         }
@@ -506,11 +672,11 @@ namespace HakuGoCmd
                         }
                         if (k == 4)
                         {
-                            Console.WriteLine("{0} is winner.", givenBoard[i, j]);
+                            //Console.WriteLine("{0} is winner.", givenBoard[i, j]);
                             for (int offset = 0; offset < 5; offset++)
                             {
                                 winningPath.Add(new Pos(i + offset, j + offset));
-                                Console.WriteLine("({0}, {1}) ", i + offset, j + offset);
+                                //Console.WriteLine("({0}, {1}) ", i + offset, j + offset);
                             }
                             return winningPath;
                         }
@@ -533,11 +699,11 @@ namespace HakuGoCmd
                         }
                         if (k == 4)
                         {
-                            Console.WriteLine("{0} is winner.", givenBoard[i, j]);
+                            //Console.WriteLine("{0} is winner.", givenBoard[i, j]);
                             for (int offset = 0; offset < 5; offset++)
                             {
                                 winningPath.Add(new Pos(i + offset, j - offset));
-                                Console.WriteLine("({0}, {1}) ", i + offset, j - offset);
+                                //Console.WriteLine("({0}, {1}) ", i + offset, j - offset);
                             }
                             return winningPath;
                         }
