@@ -289,6 +289,183 @@ namespace HakuGoCmd
 
         }
 
+        /// <summary>
+        /// 只判断最后落子点的得分
+        /// </summary>
+        /// <param name="givenBoard"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public int evaluate(char[,] givenBoard, Pos pos, char mark)
+        {
+            Pos up = new Pos(-1, 0);
+            Pos down = new Pos(1, 0);
+            Pos left = new Pos(0, -1);
+            Pos right = new Pos(0, 1);
+            Pos upleft = new Pos(-1, -1);
+            Pos upright = new Pos(-1, 1);
+            Pos downleft = new Pos(1, -1);
+            Pos downright = new Pos(1, 1);
+
+            // 向八个方向检查盘面
+            //List<Pos> directions = new List<Pos>() { up, down, left, right, upleft, upright, downleft, downright };
+            List<Pos> directions = new List<Pos>() { up, left, upleft, upright };
+
+            int five = 0;
+            int four = 0;
+            int blockfour = 0;
+            int three = 0;
+            int blockthree = 0;
+            int two = 0;
+
+            foreach (var direction in directions)
+            {
+                //int x1 = pos.x - direction.x * 4;
+                //int y1 = pos.y - direction.y * 4;
+                //int x2 = pos.x + direction.x * 4;
+                //int y2 = pos.y + direction.y * 4;
+
+                //x1 = x1 < 0 ? 0 : x1;
+                //y1 = y1 < 0 ? 0 : y1;
+                //x2 = x2 > 14 ? 14 : x2;
+                //y2 = y2 > 14 ? 14 : y2;
+
+                // 以pos 为中心向两方向扩展，碰到的第一个不是mark 的位置
+                char leftOne, rightOne;
+
+                // 标志位 扩展两边的时候是否碰到对方棋子 碰到对方棋子不继续扩展
+                bool leftBound = false, rightBound = false;
+
+                // 标志位 扩展两边的时候是否碰到空白 碰到空白可以继续扩展
+                int leftEmpty = 0, rightEmpty = 0;
+
+                // 计数 以pos 为中心向两边扩展，连续都是当前棋子的个数
+                int count = 0;
+
+                // 计数 扩展的时候碰到空白 继续扩展碰到当前mark 的个数
+                int continueCountLeft = 0, continueCountRight = 0;
+
+                // 向一个方向扩展
+                for(int i = 1; i < 5; i++)
+                {
+                    // 越界 跳出循环
+                    if(pos.x - direction.x * i < 0 || pos.y - direction.y * i < 0 || pos.x - direction.x * i > 14 || pos.y - direction.y * i > 14)
+                    {
+                        leftBound = true;
+                        break;
+                    }
+
+                    // 扩展点仍是mark
+                    if(givenBoard[pos.x - direction.x * i, pos.y - direction.y * i] == mark)
+                    {
+                        // 未碰到过空位
+                        if(leftEmpty == 0)
+                        {
+                            count++;
+                            continue;
+                        }
+                        else
+                        {
+                            continueCountLeft++;
+                            continue;
+                        }
+                    }
+                    // 扩展点不是mark，是空或对手
+                    else
+                    {
+                        leftOne = givenBoard[pos.x - direction.x * i, pos.y - direction.y * i];
+                        if(leftOne == changeMark(mark))
+                        {
+                            leftBound = true;
+                            break;
+                        }
+                        if(  )
+                        {
+                            leftEmpty++;
+                            continue;
+                        }
+                    }
+                }
+
+                // 向另一个方向扩展
+                for (int i = 1; i < 5; i++)
+                {
+                    if (pos.x + direction.x * i > 14 || pos.y + direction.y * i > 14 || pos.x + direction.x * i  < 0 || pos.y + direction.y * i < 0)
+                    {
+                        rightBound = true;
+                        break;
+                    }
+
+                    if (givenBoard[pos.x + direction.x * i, pos.y + direction.y * i] == mark)
+                    {
+                        if(rightEmpty == 0)
+                        {
+                            count++;
+                            continue;
+                        }
+                        else
+                        {
+                            continueCountRight++;
+                            continue;
+                        }
+                        
+                    }
+                    else
+                    {
+                        rightOne = givenBoard[pos.x + direction.x * i, pos.y + direction.y * i];
+                        if(rightOne == changeMark(mark))
+                        {
+                            rightBound = true;
+                            break;
+                        }
+                        if(rightOne == Helper.emptyMark)
+                        {
+                            rightEmpty++;
+                            continue;
+                        }
+                        break;
+                    }
+                }
+
+                // 除了中心点 还有连续四个以上棋子，成五
+                if(count >= 4)
+                {
+                    if(mark == Helper.AIMark)
+                        return Helper.FIVE;
+                    if (mark == Helper.playerMark)
+                        return -Helper.FIVE;
+                }
+
+                // 四连 可能产生活四和冲四
+                if (count == 3)
+                {
+                    // 四连 并且两边都有空白 活四
+                    if (leftEmpty >0 && rightEmpty>0)
+                    {
+                        four++;
+                    }
+
+                    // 冲四 一边有空另一边没有空
+                    else if ((leftEmpty == 0 && rightEmpty > 0) || (leftEmpty > 0 && rightEmpty == 0))
+                    {
+                        blockfour++;
+                    }
+                }
+
+                // 三连 
+                if(count == 2)
+                {
+                    // 活三 +OOO++ leftempty 和rightempty 一个
+                    if(leftEmpty > 0 && rightEmpty > 1)
+                    {
+                        three++;
+                    }
+
+                    // 冲四
+                }
+            }
+
+            return 0;
+        }
 
         // 盘面评估函数
         public int evaluate(char[,] givenBoard)
@@ -338,7 +515,7 @@ namespace HakuGoCmd
                 }
             }
 
-            // 活四
+            // 活四 连续六个位置中，两端为空，其余四个位置为相同棋子
             for (int i = 0; i < 15; i++)
             {
                 for (int j = 0; j < 15; j++)
@@ -375,34 +552,105 @@ namespace HakuGoCmd
             }
 
 
-            // 活三
-            //for (int i = 0; i < 15; i++)
-            //{
-            //    for (int j = 0; j < 15; j++)
-            //    {
-            //        foreach (var direction in directions)
-            //        {
-            //            // 如果延伸段超过边界 则不可能再有活四 
-            //            int x = i + direction.x * 5;
-            //            int y = j + direction.y * 5;
-            //            if (x < 0 || x > 14 || y < 0 || y > 14)
-            //            {
-            //                break;
-            //            }
-            //            if (givenBoard[i, j] == '_' && givenBoard[i + direction.x * 5, j + direction.y * 5] == '_')
-            //            {
-            //                for (int range = 1; range <= 4; range++)
-            //                {
-            //                    if (givenBoard[i, j] == givenBoard[i + direction.x * range, j + direction.y * range])
-            //                        return 50000;
-            //                }
+            // 活三 _xxx__ __xxx_ _xx_x _x_xx_  连续六个位置中，两端为空，中间四个位置有三个是其中一方的棋子，一个是空；
+            for (int i = 0; i < 15; i++)
+            {
+                for (int j = 0; j < 15; j++)
+                {
+                    foreach (var direction in directions)
+                    {
+                        // 延伸段超过边界 如果有活三已经在前一步计算过 
+                        int x = i + direction.x * 5;
+                        int y = j + direction.y * 5;
+                        if (x < 0 || x > 14 || y < 0 || y > 14)
+                        {
+                            break;
+                        }
+
+                        int countAI = 0;
+                        int countPL = 0;
+                        if (givenBoard[i, j] == '_' && givenBoard[i + direction.x * 5, j + direction.y * 5] == '_')
+                        {
+                            for (int range = 1; range <= 4; range++)
+                            {
+
+                                if (givenBoard[i + direction.x * range, j + direction.y * range] == Helper.AIMark)
+                                {
+                                    countAI++;
+                                }
+                                    
+                                else if(givenBoard[i + direction.x * range, j + direction.y * range] == Helper.AIMark)
+                                {
+                                    countPL++;
+                                }
+
+                                if(countAI == 3 && countPL == 0)
+                                {
+                                    return Helper.THREE;
+                                }
+
+                                if(countPL == 3 && countAI == 0)
+                                {
+                                    return -Helper.THREE;
+                                }
+                            }
 
 
-            //            }
-            //        }
+                        }
+                    }
 
-            //    }
-            //}
+                }
+            }
+
+            // 冲四 连续五个位置有四个是一方棋子，剩下一个为空
+            for (int i = 0; i < 15; i++)
+            {
+                for (int j = 0; j < 15; j++)
+                {
+                    foreach (var direction in directions)
+                    {
+                        // 延伸段超过边界 如果有冲四已经在前一步计算
+                        int x = i + direction.x * 5;
+                        int y = j + direction.y * 5;
+                        if (x < 0 || x > 14 || y < 0 || y > 14)
+                        {
+                            break;
+                        }
+
+                        int countAI = 0;
+                        int countPL = 0;
+                        if (givenBoard[i, j] == '_' && givenBoard[i + direction.x * 5, j + direction.y * 5] == '_')
+                        {
+                            for (int range = 1; range <= 4; range++)
+                            {
+
+                                if (givenBoard[i + direction.x * range, j + direction.y * range] == Helper.AIMark)
+                                {
+                                    countAI++;
+                                }
+
+                                else if (givenBoard[i + direction.x * range, j + direction.y * range] == Helper.AIMark)
+                                {
+                                    countPL++;
+                                }
+
+                                if (countAI == 3 && countPL == 0)
+                                {
+                                    return Helper.THREE;
+                                }
+
+                                if (countPL == 3 && countAI == 0)
+                                {
+                                    return -Helper.THREE;
+                                }
+                            }
+
+
+                        }
+                    }
+
+                }
+            }
 
             return 0;
         }
@@ -415,6 +663,15 @@ namespace HakuGoCmd
         private int changeTurn(int turn)
         {
             return turn == 1 ? 0 : 1;
+        }
+
+        private char changeMark(int mark)
+        {
+            if (mark == Helper.AIMark)
+                return Helper.playerMark;
+            else
+                return Helper.AIMark;
+
         }
 
 
