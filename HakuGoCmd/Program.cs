@@ -31,6 +31,24 @@ namespace HakuGoCmd
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
             };
 
+            testBoard = new char[15, 15] {
+                { '_', '_', '_', '_', '_', 'o', 'o', 'o', '_', '_', 'o', 'x', 'o', 'o', '_', },// 1
+                { '_', '_', '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', },// 2
+                { 'x', 'x', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', '_', },// 3
+                { 'x', '_', 'x', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
+                { 'o', '_', '_', 'x', '_', 'o', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 5
+                { 'x', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 7
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 8
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 9
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 10
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 11
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 12
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 13
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 14
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
+            };
+
             // <winningPath> store the five positions if one has won;
             // empty is the game is not finished yet;
             // store Pos(99,99) is game is over and there is a tie;
@@ -952,12 +970,15 @@ namespace HakuGoCmd
         /// <returns></returns>
         public List<Pos> shrinkAvailableMoves(List<Pos> rawAvailableMoves, int sizeAfter, char turn)
         {
-            return topK(rawAvailableMoves, sizeAfter, turn);
+            if (turn == Helper.AIMark)
+                return topK(rawAvailableMoves, sizeAfter, turn);
+            else
+                return MinK(rawAvailableMoves, sizeAfter, turn);
         }
 
 
         /// <summary>
-        /// 返回估值最高的K个落子点
+        /// 返回估值最高的K个落子点 最小堆
         /// </summary>
         /// <param name="list"></param>
         /// <param name="K"></param>
@@ -996,6 +1017,45 @@ namespace HakuGoCmd
         }
 
         /// <summary>
+        /// 返回估值最小的K个落子点 最大堆
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="K"></param>
+        /// <returns></returns>
+        public List<Pos> MinK(List<Pos> list, int K, char turn)
+        {
+            List<Pos> result = new List<Pos>();
+
+            if (K >= list.Count)
+            {
+                return list;
+            }
+
+            for (int i = 0; i < K; i++)
+            {
+                result.Add(list[i]);
+            }
+
+            buildMaxHeap(result, turn);
+
+            for (int j = K; j < list.Count; j++)
+            {
+                var pos = list[j];
+                var minPos = result[0];
+                int value = evaluate(board, pos, turn);
+                int min = evaluate(board, minPos, turn);
+
+                if (value < min)
+                {
+                    result[0] = pos;
+                    heapifyMax(result, 0, K, turn);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// 建立最小堆
         /// </summary>
         /// <param name="list"></param>
@@ -1004,6 +1064,18 @@ namespace HakuGoCmd
             for (int i = list.Count / 2 - 1; i >= 0; i--)
             {
                 heapifyMin(list, i, list.Count, turn);
+            }
+        }
+
+        /// <summary>
+        /// 建立最大堆
+        /// </summary>
+        /// <param name="list"></param>
+        public void buildMaxHeap(List<Pos> list, char turn)
+        {
+            for (int i = list.Count / 2 - 1; i >= 0; i--)
+            {
+                heapifyMax(list, i, list.Count, turn);
             }
         }
 
@@ -1044,7 +1116,44 @@ namespace HakuGoCmd
             }
         }
 
-        
+        /// <summary>
+        /// 调整最大堆
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="index"></param>
+        /// <param name="size"></param>
+        public void heapifyMax(List<Pos> list, int index, int size, char turn)
+        {
+            int left = 2 * index + 1;
+            int right = 2 * index + 2;
+            int max = index;
+
+
+            //int leftValue = evaluate(board, list[left], turn);
+            //int rightValue = evaluate(board, list[right], turn);
+            //int minValue = evaluate(board, list[min], turn);
+
+            if (left < size && evaluate(board, list[left], turn) > evaluate(board, list[max], turn))
+            {
+                max = left;
+
+            }
+
+            if (right < size && evaluate(board, list[right], turn) > evaluate(board, list[max], turn))
+            {
+                max = right;
+            }
+
+            if (max != index)
+            {
+                var temp = list[index];
+                list[index] = list[max];
+                list[max] = temp;
+                heapifyMax(list, max, size, turn);
+            }
+        }
+
+
 
         public bool hasNeighbor(int i, int j, int neighborRange)
         {
