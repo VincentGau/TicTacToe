@@ -35,14 +35,20 @@ namespace HakuGoCmd
         // 活四
         public const int FOUR = 5000;
 
+        // 双活三
+        public const int DOUBLE_THREE = 3000;
+
         // 冲四
-        public const int BLOCK_FOUR = 0;
+        public const int BLOCK_FOUR = 2000;
 
         // 活三
         public const int THREE = 1000;
-        
+
+        // 眠三
+        public const int BLOCK_THREE = 500;
+
         // 活二
-        public const int TWO = 0;
+        public const int TWO = 500;
 
         public static char AIMark = 'x';
 

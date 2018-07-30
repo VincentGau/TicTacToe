@@ -210,18 +210,15 @@ namespace HakuGoCmd
             }
 
             List<Pos> availableMoves = getAvailableMoves();
-            availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE);
+            //availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE);
 
-            //if (depth >= Helper.searchDepth || checkFinished(board).Any())
-            //{
-            //    int value = evaluate(board);
-            //    return value;
-            //}
+
 
             // Max, computer's turn 
             if (turn == 0)
             {
-
+                availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.AIMark);
+                //availableMoves = topKMoves(availableMoves, Helper.MOVESIZE);
                 int maxInChild = int.MinValue;
                 foreach (var move in availableMoves)
                 {
@@ -231,7 +228,7 @@ namespace HakuGoCmd
                     {
                         //childScore = evaluate(childState.board);
                         //使用新的评估函数
-                        childScore = evaluate(childState.board, move, Helper.AIMark);
+                        childScore = evaluate(board, move, Helper.AIMark);
                         nextMove = childState;
                         return childScore;
                     }
@@ -255,7 +252,8 @@ namespace HakuGoCmd
             //Min, player's turn
             else if (turn == 1)
             {
-
+                //availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.playerMark);
+                availableMoves = MinKMoves(availableMoves, Helper.MOVESIZE);
                 int minInChild = int.MaxValue;
                 foreach (var move in availableMoves)
                 {
@@ -266,7 +264,7 @@ namespace HakuGoCmd
 
                         //childScore = evaluate(childState.board);
                         //使用新的评估函数
-                        childScore = evaluate(childState.board, move, Helper.playerMark);
+                        childScore = evaluate(board, move, Helper.playerMark);
                         nextMove = childState;
                         return childScore;
                     }
@@ -499,6 +497,8 @@ namespace HakuGoCmd
             Pos downleft = new Pos(1, -1);
             Pos downright = new Pos(1, 1);
 
+            int returnValue = 0;
+
             // 向八个方向检查盘面
             //List<Pos> directions = new List<Pos>() { up, down, left, right, upleft, upright, downleft, downright };
             List<Pos> directions = new List<Pos>() { up, left, upleft, upright };
@@ -622,7 +622,7 @@ namespace HakuGoCmd
                 {
                     if(mark == Helper.AIMark)
                         return Helper.FIVE;
-                    if (mark == Helper.playerMark)
+                    if(mark == Helper.playerMark)
                         return -Helper.FIVE;
                 }
 
@@ -806,6 +806,36 @@ namespace HakuGoCmd
                 }
             }
 
+            if (four > 0 || blockfour > 1 || (blockfour == 1 && three > 0))
+            {
+                returnValue = Helper.FOUR;
+            }
+
+            else if (three > 1)
+            {
+                returnValue = Helper.DOUBLE_THREE;
+            }
+
+            else if(blockfour > 0)
+            {
+                returnValue = Helper.BLOCK_FOUR;
+            }
+
+            else if(three > 0)
+            {
+                returnValue = Helper.THREE;
+            }
+
+            else if (blockthree > 0)
+            {
+                returnValue = Helper.BLOCK_THREE;
+            }
+
+
+
+            if (mark == Helper.playerMark)
+                return -returnValue;
+
             return 0;
         }
 
@@ -901,15 +931,28 @@ namespace HakuGoCmd
         }
 
 
+
+        public List<Pos> topKMoves(List<Pos> rawAvailableMoves, int sizeAfter)
+        {
+            List<Pos> result = new List<Pos>();
+            return result;
+        }
+
+        public List<Pos> MinKMoves(List<Pos> rawAvailableMoves, int sizeAfter)
+        {
+            List<Pos> result = new List<Pos>();
+            return result;
+        }
+
         /// <summary>
         /// 缩小可行落子点的范围，选取落子后估值最大的若干个点进行扩展
         /// </summary>
         /// <param name="rawAvailableMoves"></param>
         /// <param name="sizeAfter"></param>
         /// <returns></returns>
-        public List<Pos> shrinkAvailableMoves(List<Pos> rawAvailableMoves, int sizeAfter)
+        public List<Pos> shrinkAvailableMoves(List<Pos> rawAvailableMoves, int sizeAfter, char turn)
         {
-            return topK(rawAvailableMoves, sizeAfter);
+            return topK(rawAvailableMoves, sizeAfter, turn);
         }
 
 
@@ -919,7 +962,7 @@ namespace HakuGoCmd
         /// <param name="list"></param>
         /// <param name="K"></param>
         /// <returns></returns>
-        public List<Pos> topK(List<Pos> list, int K)
+        public List<Pos> topK(List<Pos> list, int K, char turn)
         {
             List<Pos> result = new List<Pos>();
 
@@ -933,19 +976,19 @@ namespace HakuGoCmd
                 result.Add(list[i]);
             }
 
-            buildMinHeap(result);
+            buildMinHeap(result, turn);
 
             for(int j = K; j < list.Count; j++)
             {
                 var pos = list[j];
                 var minPos = result[0];
-                int value = evaluate(newBoard(pos, Helper.AIMark), pos, Helper.AIMark);
-                int min = evaluate(newBoard(minPos, Helper.AIMark), pos, Helper.AIMark);
+                int value = evaluate(board, pos, turn);
+                int min = evaluate(board, minPos, turn);
 
                 if(value > min)
                 {
                     result[0] = pos;
-                    heapifyMin(result, 0, K);
+                    heapifyMin(result, 0, K, turn);
                 }
             }
 
@@ -956,11 +999,11 @@ namespace HakuGoCmd
         /// 建立最小堆
         /// </summary>
         /// <param name="list"></param>
-        public void buildMinHeap(List<Pos> list)
+        public void buildMinHeap(List<Pos> list, char turn)
         {
-            for (int i = list.Count / 2 - 1; i > 0; i--)
+            for (int i = list.Count / 2 - 1; i >= 0; i--)
             {
-                heapifyMin(list, i, list.Count);
+                heapifyMin(list, i, list.Count, turn);
             }
         }
 
@@ -970,26 +1013,24 @@ namespace HakuGoCmd
         /// <param name="list"></param>
         /// <param name="index"></param>
         /// <param name="size"></param>
-        public void heapifyMin(List<Pos> list, int index, int size)
+        public void heapifyMin(List<Pos> list, int index, int size, char turn)
         {
             int left = 2 * index + 1;
             int right = 2 * index + 2;
             int min = index;
 
-            var leftBoard = newBoard(list[left], Helper.AIMark);
-            var rightBoard = newBoard(list[right], Helper.AIMark);
-            var minBoard = newBoard(list[min], Helper.AIMark);
 
-            int leftValue = evaluate(leftBoard, list[left], Helper.AIMark);
-            int rightValue = evaluate(rightBoard, list[right], Helper.AIMark);
-            int maxValue = evaluate(minBoard, list[min], Helper.AIMark);
+            //int leftValue = evaluate(board, list[left], turn);
+            //int rightValue = evaluate(board, list[right], turn);
+            //int minValue = evaluate(board, list[min], turn);
 
-            if (left < size && leftValue > maxValue)
+            if (left < size && evaluate(board, list[left], turn) < evaluate(board, list[min], turn))
             {
                 min = left;
+
             }
 
-            if (right < size && rightValue > maxValue)
+            if (right < size && evaluate(board, list[right], turn) < evaluate(board, list[min], turn))
             {
                 min = right;
             }
@@ -997,11 +1038,13 @@ namespace HakuGoCmd
             if (min != index)
             {
                 var temp = list[index];
-                list[min] = temp;
                 list[index] = list[min];
-                heapifyMin(list, min, size);
+                list[min] = temp;
+                heapifyMin(list, min, size, turn);
             }
         }
+
+        
 
         public bool hasNeighbor(int i, int j, int neighborRange)
         {
@@ -1171,4 +1214,6 @@ namespace HakuGoCmd
             return winningPath;
         }
     }
+
+
 }
