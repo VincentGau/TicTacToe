@@ -49,6 +49,9 @@ namespace HakuGoCmd
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
             };
 
+            int vvvalue = bs.evaluate(testBoard, new Pos(5, 4), 'x');
+            vvvalue = bs.evaluate(testBoard, new Pos(2, 3), 'x');
+
             // <winningPath> store the five positions if one has won;
             // empty is the game is not finished yet;
             // store Pos(99,99) is game is over and there is a tie;
@@ -270,8 +273,8 @@ namespace HakuGoCmd
             //Min, player's turn
             else if (turn == 1)
             {
-                //availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.playerMark);
-                availableMoves = MinKMoves(availableMoves, Helper.MOVESIZE);
+                availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.playerMark);
+                //availableMoves = MinKMoves(availableMoves, Helper.MOVESIZE);
                 int minInChild = int.MaxValue;
                 foreach (var move in availableMoves)
                 {
@@ -853,6 +856,8 @@ namespace HakuGoCmd
 
             if (mark == Helper.playerMark)
                 return -returnValue;
+            if (mark == Helper.AIMark)
+                return returnValue;
 
             return 0;
         }
