@@ -11,9 +11,9 @@ namespace HakuGoCmd
         // 棋盘尺寸
         public const int ROW = 15;
 
-        public const int searchDepth = 1;
+        public const int searchDepth = 4;
 
-        public const int MOVESIZE = 2;
+        public const int MOVESIZE = 5;
 
 
         /// <summary>
@@ -45,10 +45,12 @@ namespace HakuGoCmd
         public const int THREE = 1000;
 
         // 眠三
-        public const int BLOCK_THREE = 500;
+        public const int BLOCK_THREE = 400;
 
         // 活二
         public const int TWO = 500;
+
+        public const int BLOCK_TWO = 100;
 
         public static char AIMark = 'x';
 
