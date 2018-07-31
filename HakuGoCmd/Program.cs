@@ -32,10 +32,10 @@ namespace HakuGoCmd
             };
 
             testBoard = new char[15, 15] {
-                { '_', '_', '_', '_', '_', 'o', 'o', 'o', '_', '_', 'o', 'x', 'o', 'o', '_', },// 1
+                { '_', '_', '_', '_', 'x', 'o', 'o', 'o', 'o', 'x', 'o', 'x', 'o', 'o', '_', },// 1
                 { '_', '_', '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', },// 2
-                { 'x', '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', '_', },// 3
-                { 'x', '_', 'x', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
+                { 'x', 'x', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', '_', },// 3
+                { 'x', '_', 'x', '_', '_', '_', 'x', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
                 { 'o', '_', '_', 'x', '_', 'o', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 5
                 { 'x', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 7
@@ -49,8 +49,12 @@ namespace HakuGoCmd
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
             };
 
-            int vvvalue = bs.evaluate(testBoard, new Pos(5, 4), 'x');
-            vvvalue = bs.evaluate(testBoard, new Pos(2, 3), 'x');
+            bs.board = testBoard;
+            bs.drawBoard();
+
+            Pos ppp = new Pos(5, 4);
+            int vvvalue = bs.evaluate(testBoard, ppp);
+            vvvalue = bs.evaluate(testBoard, new Pos(0, 9));
 
             // <winningPath> store the five positions if one has won;
             // empty is the game is not finished yet;
@@ -59,7 +63,7 @@ namespace HakuGoCmd
             //List<Pos> winningPath = new List<Pos>();
             //winningPath = bs.checkFinished(testBoard);
 
-            bs.board = testBoard;
+            
             //if (bs.hasNeighbor(7, 0, 2))
             //{
             //    Console.WriteLine("has neighbor.");
@@ -67,7 +71,7 @@ namespace HakuGoCmd
             //bs.drawBoard();
 
 
-            bs.drawBoard();
+            
             Console.WriteLine(bs.minimax());
             bs.move();
 
@@ -81,7 +85,8 @@ namespace HakuGoCmd
                 if (!winningPath.Any())
                 {
                     Console.WriteLine("your turn now: ");
-                    bs.updateBoard(bs.getInputPos(), 'o');
+                    Pos inputPos = bs.getInputPos();
+                    bs.updateBoard(inputPos, Helper.playerMark);
                     bs.drawBoard();
                     Console.WriteLine(bs.minimax());
                     bs.move();
@@ -160,6 +165,11 @@ namespace HakuGoCmd
 
         }
 
+
+        /// <summary>
+        /// 接受输入一个坐标
+        /// </summary>
+        /// <returns></returns>
         public Pos getInputPos()
         {
             string s = Console.ReadLine();
@@ -238,7 +248,7 @@ namespace HakuGoCmd
             // Max, computer's turn 
             if (turn == 0)
             {
-                //availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.AIMark);
+                availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.AIMark);
                 int maxInChild = int.MinValue;
                 foreach (var move in availableMoves)
                 {
@@ -246,16 +256,17 @@ namespace HakuGoCmd
                     BoardState childState = new BoardState(newBoard(move, Helper.AIMark), changeTurn(turn), depth + 1, alpha, beta);
                     if (depth >= Helper.searchDepth || checkFinished(childState.board).Count == 5)
                     {
-                        //childScore = evaluate(childState.board);
                         //使用新的评估函数
-                        childScore = evaluate(board, move, Helper.AIMark)  - evaluate(board, move, Helper.playerMark);
+                        childScore = evaluate(board, move) - depth;
                         nextMove = childState;
-                        return childScore;
+                        //return childScore;
                     }
                     else
                     {
                         childScore = childState.minimax();
                     }
+
+
                     if (childScore > maxInChild)
                     {
                         maxInChild = childScore;
@@ -264,7 +275,7 @@ namespace HakuGoCmd
                     }
 
                     if (alpha >= beta)
-                        return alpha;
+                        break;
                 }
                 return maxInChild;
             }
@@ -272,7 +283,7 @@ namespace HakuGoCmd
             //Min, player's turn
             else if (turn == 1)
             {
-                //availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.playerMark);
+                availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.playerMark);
                 int minInChild = int.MaxValue;
                 foreach (var move in availableMoves)
                 {
@@ -280,18 +291,17 @@ namespace HakuGoCmd
                     int childScore;
                     if (depth >= Helper.searchDepth || checkFinished(childState.board).Count == 5)
                     {
-
-                        //childScore = evaluate(childState.board);
                         //使用新的评估函数
-                        childScore = evaluate(board, move, Helper.AIMark) + evaluate(board, move, Helper.playerMark);
+                        childScore = -evaluate(board, move) + depth;
                         nextMove = childState;
-                        return childScore;
+                        //return childScore;
                     }
 
                     else
                     {
                         childScore = childState.minimax();
                     }
+
 
                     if (childScore < minInChild)
                     {
@@ -301,7 +311,7 @@ namespace HakuGoCmd
                     }
 
                     if (alpha >= beta)
-                        return beta;
+                        break;
                 }
 
                 return minInChild;
@@ -500,12 +510,25 @@ namespace HakuGoCmd
         }
 
         /// <summary>
-        /// 只判断最后落子点的得分
+        /// 评估落子点得分，考虑攻防
         /// </summary>
         /// <param name="givenBoard"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public int evaluate(char[,] givenBoard, Pos pos, char mark)
+        public int evaluate(char[,] givenBoard, Pos pos)
+        {
+            int value1 = evaluateOneSide(givenBoard, pos, Helper.AIMark);
+            int value2 = evaluateOneSide(givenBoard, pos, Helper.playerMark);
+            return value1 - value2;
+        }
+
+        /// <summary>
+        /// 只判断其中一方最后落子点的得分
+        /// </summary>
+        /// <param name="givenBoard"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public int evaluateOneSide(char[,] givenBoard, Pos pos, char mark)
         {
             Pos up = new Pos(-1, 0);
             Pos down = new Pos(1, 0);
@@ -971,12 +994,13 @@ namespace HakuGoCmd
         /// <param name="rawAvailableMoves"></param>
         /// <param name="sizeAfter"></param>
         /// <returns></returns>
-        public List<Pos> shrinkAvailableMoves(List<Pos> rawAvailableMoves, int sizeAfter, char turn)
+        public List<Pos> shrinkAvailableMoves(List<Pos> rawAvailableMoves, int sizeAfter, char mark)
         {
-            if (turn == Helper.AIMark)
-                return topK(rawAvailableMoves, sizeAfter, turn);
-            else
-                return MinK(rawAvailableMoves, sizeAfter, turn);
+            //if (mark == Helper.AIMark)
+            //    return topK(rawAvailableMoves, sizeAfter);
+            //else
+            //    return MinK(rawAvailableMoves, sizeAfter);
+            return topK(rawAvailableMoves, sizeAfter);
         }
 
 
@@ -986,7 +1010,7 @@ namespace HakuGoCmd
         /// <param name="list"></param>
         /// <param name="K"></param>
         /// <returns></returns>
-        public List<Pos> topK(List<Pos> list, int K, char turn)
+        public List<Pos> topK(List<Pos> list, int K)
         {
             List<Pos> result = new List<Pos>();
 
@@ -1000,19 +1024,19 @@ namespace HakuGoCmd
                 result.Add(list[i]);
             }
 
-            buildMinHeap(result, turn);
+            buildMinHeap(result);
 
             for(int j = K; j < list.Count; j++)
             {
                 var pos = list[j];
                 var minPos = result[0];
-                int value = evaluate(board, pos, turn);
-                int min = evaluate(board, minPos, turn);
+                int value = evaluate(board, pos);
+                int min = evaluate(board, minPos);
 
                 if(value > min)
                 {
                     result[0] = pos;
-                    heapifyMin(result, 0, K, turn);
+                    heapifyMin(result, 0, K);
                 }
             }
 
@@ -1025,7 +1049,7 @@ namespace HakuGoCmd
         /// <param name="list"></param>
         /// <param name="K"></param>
         /// <returns></returns>
-        public List<Pos> MinK(List<Pos> list, int K, char turn)
+        public List<Pos> MinK(List<Pos> list, int K)
         {
             List<Pos> result = new List<Pos>();
 
@@ -1039,19 +1063,19 @@ namespace HakuGoCmd
                 result.Add(list[i]);
             }
 
-            buildMaxHeap(result, turn);
+            buildMaxHeap(result);
 
             for (int j = K; j < list.Count; j++)
             {
                 var pos = list[j];
                 var minPos = result[0];
-                int value = evaluate(board, pos, turn);
-                int min = evaluate(board, minPos, turn);
+                int value = evaluate(board, pos);
+                int min = evaluate(board, minPos);
 
                 if (value < min)
                 {
                     result[0] = pos;
-                    heapifyMax(result, 0, K, turn);
+                    heapifyMax(result, 0, K);
                 }
             }
 
@@ -1062,11 +1086,11 @@ namespace HakuGoCmd
         /// 建立最小堆
         /// </summary>
         /// <param name="list"></param>
-        public void buildMinHeap(List<Pos> list, char turn)
+        public void buildMinHeap(List<Pos> list)
         {
             for (int i = list.Count / 2 - 1; i >= 0; i--)
             {
-                heapifyMin(list, i, list.Count, turn);
+                heapifyMin(list, i, list.Count);
             }
         }
 
@@ -1074,11 +1098,11 @@ namespace HakuGoCmd
         /// 建立最大堆
         /// </summary>
         /// <param name="list"></param>
-        public void buildMaxHeap(List<Pos> list, char turn)
+        public void buildMaxHeap(List<Pos> list)
         {
             for (int i = list.Count / 2 - 1; i >= 0; i--)
             {
-                heapifyMax(list, i, list.Count, turn);
+                heapifyMax(list, i, list.Count);
             }
         }
 
@@ -1088,7 +1112,7 @@ namespace HakuGoCmd
         /// <param name="list"></param>
         /// <param name="index"></param>
         /// <param name="size"></param>
-        public void heapifyMin(List<Pos> list, int index, int size, char turn)
+        public void heapifyMin(List<Pos> list, int index, int size)
         {
             int left = 2 * index + 1;
             int right = 2 * index + 2;
@@ -1099,13 +1123,13 @@ namespace HakuGoCmd
             //int rightValue = evaluate(board, list[right], turn);
             //int minValue = evaluate(board, list[min], turn);
 
-            if (left < size && evaluate(board, list[left], turn) < evaluate(board, list[min], turn))
+            if (left < size && evaluate(board, list[left]) < evaluate(board, list[min]))
             {
                 min = left;
 
             }
 
-            if (right < size && evaluate(board, list[right], turn) < evaluate(board, list[min], turn))
+            if (right < size && evaluate(board, list[right]) < evaluate(board, list[min]))
             {
                 min = right;
             }
@@ -1115,7 +1139,7 @@ namespace HakuGoCmd
                 var temp = list[index];
                 list[index] = list[min];
                 list[min] = temp;
-                heapifyMin(list, min, size, turn);
+                heapifyMin(list, min, size);
             }
         }
 
@@ -1125,7 +1149,7 @@ namespace HakuGoCmd
         /// <param name="list"></param>
         /// <param name="index"></param>
         /// <param name="size"></param>
-        public void heapifyMax(List<Pos> list, int index, int size, char turn)
+        public void heapifyMax(List<Pos> list, int index, int size)
         {
             int left = 2 * index + 1;
             int right = 2 * index + 2;
@@ -1136,13 +1160,13 @@ namespace HakuGoCmd
             //int rightValue = evaluate(board, list[right], turn);
             //int minValue = evaluate(board, list[min], turn);
 
-            if (left < size && evaluate(board, list[left], turn) > evaluate(board, list[max], turn))
+            if (left < size && evaluate(board, list[left]) > evaluate(board, list[max]))
             {
                 max = left;
 
             }
 
-            if (right < size && evaluate(board, list[right], turn) > evaluate(board, list[max], turn))
+            if (right < size && evaluate(board, list[right]) > evaluate(board, list[max]))
             {
                 max = right;
             }
@@ -1152,7 +1176,7 @@ namespace HakuGoCmd
                 var temp = list[index];
                 list[index] = list[max];
                 list[max] = temp;
-                heapifyMax(list, max, size, turn);
+                heapifyMax(list, max, size);
             }
         }
 
@@ -1180,6 +1204,9 @@ namespace HakuGoCmd
             return false;
         }
 
+        /// <summary>
+        /// 落子并绘制新盘面
+        /// </summary>
         public void move()
         {
             board = nextMove.board;
