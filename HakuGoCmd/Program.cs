@@ -34,7 +34,7 @@ namespace HakuGoCmd
             testBoard = new char[15, 15] {
                 { '_', '_', '_', '_', '_', 'o', 'o', 'o', '_', '_', 'o', 'x', 'o', 'o', '_', },// 1
                 { '_', '_', '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', },// 2
-                { 'x', 'x', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', '_', },// 3
+                { 'x', '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', '_', },// 3
                 { 'x', '_', 'x', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
                 { 'o', '_', '_', 'x', '_', 'o', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 5
                 { 'x', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
@@ -238,8 +238,7 @@ namespace HakuGoCmd
             // Max, computer's turn 
             if (turn == 0)
             {
-                availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.AIMark);
-                //availableMoves = topKMoves(availableMoves, Helper.MOVESIZE);
+                //availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.AIMark);
                 int maxInChild = int.MinValue;
                 foreach (var move in availableMoves)
                 {
@@ -249,7 +248,7 @@ namespace HakuGoCmd
                     {
                         //childScore = evaluate(childState.board);
                         //使用新的评估函数
-                        childScore = evaluate(board, move, Helper.AIMark);
+                        childScore = evaluate(board, move, Helper.AIMark)  - evaluate(board, move, Helper.playerMark);
                         nextMove = childState;
                         return childScore;
                     }
@@ -273,8 +272,7 @@ namespace HakuGoCmd
             //Min, player's turn
             else if (turn == 1)
             {
-                availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.playerMark);
-                //availableMoves = MinKMoves(availableMoves, Helper.MOVESIZE);
+                //availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE, Helper.playerMark);
                 int minInChild = int.MaxValue;
                 foreach (var move in availableMoves)
                 {
@@ -285,7 +283,7 @@ namespace HakuGoCmd
 
                         //childScore = evaluate(childState.board);
                         //使用新的评估函数
-                        childScore = evaluate(board, move, Helper.playerMark);
+                        childScore = evaluate(board, move, Helper.AIMark) + evaluate(board, move, Helper.playerMark);
                         nextMove = childState;
                         return childScore;
                     }
