@@ -49,29 +49,29 @@ namespace HakuGoCmd
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
             };
 
-            testBoard = new char[15, 15] {
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 1
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 2
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 3
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
-                { '_', '_', '_', '_', '_', '_', '_', 'x', '_', '_', '_', '_', '_', '_', '_', },// 5
-                { '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 7
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 8
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 9
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 10
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 11
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 12
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 13
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 14
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
-            };
+            //testBoard = new char[15, 15] {
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 1
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 2
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 3
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
+            //    { '_', '_', '_', '_', '_', 'x', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 5
+            //    { '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 7
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 8
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 9
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 10
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 11
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 12
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 13
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 14
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
+            //};
 
             bs.board = testBoard;
             bs.drawBoard();
 
-            Pos ppp = new Pos(5, 4);
-            int vvvalue = bs.evaluate(testBoard, ppp);
+            Pos ppp = new Pos(3,7);
+            int vvvalue = bs.evaluateOneSide(testBoard, ppp, Helper.playerMark);
             vvvalue = bs.evaluate(testBoard, new Pos(0, 9));
 
             // <winningPath> store the five positions if one has won;
@@ -275,7 +275,7 @@ namespace HakuGoCmd
                     if (depth >= Helper.searchDepth || checkFinished(childState.board).Count == 5)
                     {
                         //使用新的评估函数
-                        childScore = evaluate(board, move) - depth;
+                        //childScore = evaluate(board, move) - depth;
                         childScore = evaluateOneSide(board, move, Helper.AIMark) - depth;
                         nextMove = childState;
                         //return childScore;
@@ -311,8 +311,8 @@ namespace HakuGoCmd
                     if (depth >= Helper.searchDepth || checkFinished(childState.board).Count == 5)
                     {
                         //使用新的评估函数
-                        childScore = -evaluate(board, move) + depth;
-                        childScore = evaluateOneSide(board, move, Helper.AIMark) + depth;
+                        //childScore = -evaluate(board, move) + depth;
+                        childScore = evaluateOneSide(board, move, Helper.playerMark) + depth;
                         
                         nextMove = childState;
                         //return childScore;
@@ -902,7 +902,7 @@ namespace HakuGoCmd
                         else if (isLeagal(leftX3) && isLeagal(leftY3) &&
                             givenBoard[leftX1, leftY1] == Helper.emptyMark && givenBoard[leftX2, leftY2] == Helper.emptyMark && givenBoard[leftX3, leftY3] == Helper.emptyMark)
                         {
-                            blockthree++;
+                            blocktwo++;
                         }
                     }
 
@@ -939,6 +939,7 @@ namespace HakuGoCmd
                             givenBoard[leftX4, leftY4] == mark)
                         {
                             blockfour++;
+                            continue;
                         }
 
                         // 活三 +O+OO+ 一侧是空，另一侧是 空+己方+己方+空
@@ -949,6 +950,7 @@ namespace HakuGoCmd
                             givenBoard[leftX4, leftY4] == Helper.emptyMark)
                         {
                             three++;
+                            continue;
                         }
 
                         // 眠三 O++OO 其中一侧是 空+空+己方+己方
@@ -958,16 +960,17 @@ namespace HakuGoCmd
                             givenBoard[leftX4, leftY4] == mark)
                         {
                             blockthree++;
+                            continue;
                         }
 
-                        // 眠三 O+O+O 其中一侧是 空+己方+空+己方
+                        // 眠三 O+O+O 其中一侧是 空+己方+空+己方 即使另一侧是空也当做眠三处理
                         if (givenBoard[leftX1, leftY1] == Helper.emptyMark &&
                             givenBoard[leftX2, leftY2] == mark &&
                             givenBoard[leftX3, leftY3] == Helper.emptyMark &&
                             givenBoard[leftX4, leftY4] == mark) 
                         {
                             blockthree++;
-                                
+                            continue;
                         }
 
                         
@@ -980,6 +983,7 @@ namespace HakuGoCmd
                             givenBoard[leftX4, leftY4] == Helper.emptyMark)
                         {
                             blockthree++;
+                            continue;
                         }
 
                         // 眠三 +O+OOX 一侧是空 另一侧是 空+己方+己方+对方
@@ -990,6 +994,7 @@ namespace HakuGoCmd
                             givenBoard[leftX4, leftY4] == changeMark(mark))
                         {
                             blockthree++;
+                            continue;
                         }
                     }
 
@@ -1002,10 +1007,9 @@ namespace HakuGoCmd
                             givenBoard[leftX3, leftY3] == mark)
                         {
                             blockthree++;
+                            continue;
                         }
                     }
-
-
 
                     if (isLeagal(rightX4) && isLeagal(rightY4))
                     {
@@ -1016,6 +1020,7 @@ namespace HakuGoCmd
                             givenBoard[rightX4, rightY4] == mark)
                         {
                             blockfour++;
+                            continue;
                         }
 
                         // 活三 +O+OO+ 一侧是空，另一侧是 空+己方+己方+空
@@ -1027,6 +1032,7 @@ namespace HakuGoCmd
                         {
 
                             three++;
+                            continue;
                         }
 
 
@@ -1037,6 +1043,7 @@ namespace HakuGoCmd
                             givenBoard[rightX4, rightY4] == mark)
                         {
                             blockthree++;
+                            continue;
                         }
 
                         // 眠三 O+O+O 其中一侧是 空+己方+空+己方
@@ -1046,6 +1053,7 @@ namespace HakuGoCmd
                             givenBoard[rightX4, rightY4] == mark)
                         {
                             blockthree++;
+                            continue;
                         }
 
                         
@@ -1057,9 +1065,17 @@ namespace HakuGoCmd
                             givenBoard[rightX4, rightY4] == Helper.emptyMark)
                         {
                             if (isBarrier(givenBoard, new Pos(leftX1, leftY1), mark))
+                            {
                                 blockthree++;
+                                continue;
+                            }
+
                             else
+                            {
                                 three++;
+                                continue;
+                            }
+                                
                         }
 
                         // 眠三 +O+OOX 一侧是空 另一侧是 空+己方+己方+对方
@@ -1070,6 +1086,7 @@ namespace HakuGoCmd
                             givenBoard[rightX4, rightY4] == changeMark(mark))
                         {
                             blockthree++;
+                            continue;
                         }
                     }
 
@@ -1082,7 +1099,17 @@ namespace HakuGoCmd
                             givenBoard[rightX3, rightY3] == mark)
                         {
                             blockthree++;
+                            continue;
                         }
+                    }
+
+                    // 眠三 O+O+O 两侧都是 空+己方
+                    if (isLeagal(leftX2) && isLeagal(leftY2) && isLeagal(rightX2) && isLeagal(rightY2) &&
+                        givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                        givenBoard[leftX2, leftY2] == mark )
+                    {
+                        blockthree++;
+                        continue;
                     }
 
                     // 活二或眠二 O+O+
@@ -1091,13 +1118,21 @@ namespace HakuGoCmd
                         givenBoard[leftX2, leftY2] == mark &&
                         givenBoard[leftX3, leftY3] == Helper.emptyMark)
                     {
-                        // 眠二 XO+O+ 一侧是空 另一侧是 空+己方+空
-                        if (isBarrier(givenBoard, new Pos(rightX1, rightY1), mark))
+                        // 眠二 XO+O+ 一侧是空 另一侧是 空+己方+空+非壁垒
+                        if (isBarrier(givenBoard, new Pos(rightX1, rightY1), mark) && !isBarrier(givenBoard, new Pos(leftX4, leftY4), mark))
+                        {
                             blocktwo++;
+                            continue;
+                        }
+                            
 
-                        // 活二 +O+O+ 一侧是空 另一侧是 空+己方+空
-                        else
+                        // 活二 +O+O+ 一侧是空 另一侧是 空+己方+空 这五个位置两侧至少有一个不是壁垒才能构成活二
+                        else if (!isBarrier(givenBoard, new Pos(rightX1, rightY1), mark) && (!isBarrier(givenBoard, new Pos(rightX2, rightY2), mark) || !isBarrier(givenBoard, new Pos(leftX4, leftY4), mark)))
+                        {
                             two++;
+                            continue;
+                        }
+                            
                     }
 
                     // 活二或眠二 O+O+
@@ -1106,13 +1141,21 @@ namespace HakuGoCmd
                         givenBoard[rightX2, rightY2] == mark &&
                         givenBoard[rightX3, rightY3] == Helper.emptyMark)
                     {
-                        // 眠二 XO+O+ 一侧是空 另一侧是 空+己方+空
-                        if (isBarrier(givenBoard, new Pos(leftX1, leftY1), mark))
+                        // 眠二 XO+O+ 一侧是空 另一侧是 空+己方+空+非壁垒
+                        if (isBarrier(givenBoard, new Pos(leftX1, leftY1), mark) && !isBarrier(givenBoard, new Pos(rightX4, rightY4), mark))
+                        {
                             blocktwo++;
+                            continue;
+                        }
+                            
 
-                        // 活二 +O+O+ 一侧是空 另一侧是 空+己方+空
-                        else
+                        // 活二 +O+O+ 一侧是空 另一侧是 空+己方+空 这五个位置两侧至少有一个不是壁垒才能构成活二
+                        else if(!isBarrier(givenBoard, new Pos(leftX1, leftY1), mark) && (!isBarrier(givenBoard, new Pos(leftX2, leftY2), mark) || !isBarrier(givenBoard, new Pos(rightX4, rightY4), mark)))
+                        {
                             two++;
+                            continue;
+                        }
+                            
                     }
 
                     // 活二或眠二 O++O
@@ -1123,9 +1166,17 @@ namespace HakuGoCmd
                         givenBoard[leftX3, leftY3] == mark)
                         {
                             if (isBarrier(givenBoard, new Pos(rightX1, rightY1), mark))
+                            {
                                 blocktwo++;
+                                continue;
+                            }
+
                             else
+                            {
                                 two++;
+                                continue;
+                            }
+                                
                         }
                     }
 
@@ -1136,52 +1187,74 @@ namespace HakuGoCmd
                         givenBoard[rightX3, rightY3] == mark)
                     {
                         if (isBarrier(givenBoard, new Pos(leftX1, leftY1), mark))
+                        {
                             blocktwo++;
+                            continue;
+                        }
+
                         else
+                        {
                             two++;
+                            continue;
+                        }
+                            
                     }
 
                 }
             }
 
+            // 活四 双冲四 冲四活三
             if (four > 0 || blockfour > 1 || (blockfour == 1 && three > 0))
             {
                 returnValue = Helper.LEVEL2;
             }
 
+            // 双活三
             else if (three > 1)
             {
                 returnValue = Helper.LEVEL3;
             }
 
-            else if(three > 0 && blockthree > 0)
-            {
-                returnValue = Helper.LEVEL3 - 100;
-            }
-
-            else if(blockfour > 0)
+            // 活三眠三
+            else if (three > 0 && blockthree > 0)
             {
                 returnValue = Helper.LEVEL4;
             }
 
-            else if(three > 0)
+            // 冲四
+            else if(blockfour > 0)
             {
                 returnValue = Helper.LEVEL5;
             }
 
-            else if(two > 0)
-            {
-                returnValue = Helper.LEVEL7;
-            }
-
-            else if (blockthree > 0)
+            // 活三
+            else if(three > 0)
             {
                 returnValue = Helper.LEVEL6;
             }
 
+            // 双活二
+            else if(two > 1)
+            {
+                returnValue = Helper.LEVEL7;
+            }
+
+            // 眠三
+            else if (blockthree > 0)
+            {
+                returnValue = Helper.LEVEL8;
+            }
+
+            // 活二
+            else if(two > 0)
+            {
+                returnValue = Helper.LEVEL9;
+            }
+
+            // 眠二
             else if(blocktwo > 0)
             {
-                returnValue = Helper.BLOCK_TWO;
+                returnValue = Helper.LEVEL10;
             }
 
 
