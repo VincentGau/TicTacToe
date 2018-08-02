@@ -11,9 +11,9 @@ namespace HakuGoCmd
         // 棋盘尺寸
         public const int ROW = 15;
 
-        public const int searchDepth = 1;
+        public const int searchDepth = 4;
 
-        public const int MOVESIZE = 2;
+        public const int MOVESIZE = 5;
 
 
         /// <summary>
@@ -66,6 +66,16 @@ namespace HakuGoCmd
         /// 冲二
         /// </summary>
         public const int LEVEL10 = 100;
+
+        /// <summary>
+        /// 活一
+        /// </summary>
+        public const int LEVEL11 = 70;
+
+        /// <summary>
+        /// 冲一
+        /// </summary>
+        public const int LEVEL12 = 50;
 
 
         

@@ -49,23 +49,23 @@ namespace HakuGoCmd
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
             };
 
-            //testBoard = new char[15, 15] {
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 1
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 2
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 3
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
-            //    { '_', '_', '_', '_', '_', 'x', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 5
-            //    { '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 7
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 8
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 9
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 10
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 11
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 12
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 13
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 14
-            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
-            //};
+            testBoard = new char[15, 15] {
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 1
+                { '_', '_', '_', '_', '_', '_', 'x', '_', '_', '_', '_', '_', '_', '_', '_', },// 2
+                { '_', '_', '_', '_', 'x', 'o', 'o', '_', '_', '_', '_', '_', '_', '_', '_', },// 3
+                { '_', '_', '_', '_', 'x', '_', 'o', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
+                { '_', '_', '_', '_', '_', 'x', 'o', 'o', '_', '_', '_', '_', '_', '_', '_', },// 5
+                { '_', '_', '_', '_', 'x', '_', 'o', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 7
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 8
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 9
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 10
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 11
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 12
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 13
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 14
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
+            };
 
             bs.board = testBoard;
             bs.drawBoard();
@@ -261,7 +261,7 @@ namespace HakuGoCmd
             List<Pos> availableMoves = getAvailableMoves();
             //availableMoves = shrinkAvailableMoves(availableMoves, Helper.MOVESIZE);
 
-
+            // 盘面的评价函数如何定义：当前局面，黑子落下所能获得的最大分数，白子落下所能获得的最小分数
 
             // Max, computer's turn 
             if (turn == 0)
@@ -276,7 +276,9 @@ namespace HakuGoCmd
                     {
                         //使用新的评估函数
                         //childScore = evaluate(board, move) - depth;
-                        childScore = evaluateOneSide(board, move, Helper.AIMark) - depth;
+                        //childScore = evaluateOneSide(board, move, Helper.playerMark) - depth;
+                        childScore = evaluateBoard(childState.board);
+
                         nextMove = childState;
                         //return childScore;
                     }
@@ -312,7 +314,8 @@ namespace HakuGoCmd
                     {
                         //使用新的评估函数
                         //childScore = -evaluate(board, move) + depth;
-                        childScore = evaluateOneSide(board, move, Helper.playerMark) + depth;
+                        //childScore = evaluateOneSide(board, move, Helper.AIMark) + depth;
+                        childScore = evaluateBoard(childState.board);
                         
                         nextMove = childState;
                         //return childScore;
@@ -543,8 +546,788 @@ namespace HakuGoCmd
             return value1 - value2;
         }
 
+
         /// <summary>
-        /// 只判断其中一方最后落子点的得分
+        /// 局面评分定义成所有棋子得分之和，棋子得分AI方为正，玩家方为负
+        /// </summary>
+        /// <param name="givenBoard"></param>
+        /// <returns></returns>
+        public int evaluateBoard(char[,] givenBoard)
+        {
+            int AIScore = 0;
+            int playScore = 0;
+            for(int i = 0; i < 15; i++)
+            {
+                for(int j = 0; j < 15; j++)
+                {
+                    if(givenBoard[i, j] != Helper.emptyMark)
+                    {
+                        int value = evaluatePos(givenBoard, new Pos(i, j));
+                        if(value < 0)
+                        {
+                            AIScore += value;
+                        }
+                        if(value > 0)
+                        {
+                            playScore += value;
+                        }
+                    }
+                }
+            }
+
+            return AIScore + playScore;
+        }
+
+        /// <summary>
+        /// 计算盘面上某一点的分数
+        /// </summary>
+        /// <param name="givenBoard"></param>
+        /// <param name="pos"></param>
+        /// <returns></returns>
+        public int evaluatePos(char[,] givenBoard, Pos pos)
+        {
+            char mark = givenBoard[pos.x, pos.y];
+            if(mark == Helper.emptyMark)
+            {
+                return 0;
+            }
+
+            Pos up = new Pos(-1, 0);
+            Pos down = new Pos(1, 0);
+            Pos left = new Pos(0, -1);
+            Pos right = new Pos(0, 1);
+            Pos upleft = new Pos(-1, -1);
+            Pos upright = new Pos(-1, 1);
+            Pos downleft = new Pos(1, -1);
+            Pos downright = new Pos(1, 1);
+
+            int returnValue = 0;
+
+            // 向八个方向检查盘面
+            //List<Pos> directions = new List<Pos>() { up, down, left, right, upleft, upright, downleft, downright };
+            List<Pos> directions = new List<Pos>() { up, left, upleft, upright };
+
+            int five = 0;
+            int four = 0;
+            int blockfour = 0;
+            int three = 0;
+            int blockthree = 0;
+            int two = 0;
+            int blocktwo = 0;
+            int one = 0;
+            int blockone = 0;
+
+            foreach (var direction in directions)
+            {
+                // 以pos 为中心向两方向扩展，碰到的第一个不是mark 的位置的落子情况
+                char leftOne, rightOne;
+
+                // 标志位 扩展两边的时候是否碰到边界 碰到边界不继续扩展
+                bool leftBound = false, rightBound = false;
+
+                // 标志位 扩展两边的时候是否碰到对方棋子 碰到对方棋子不继续扩展
+                bool leftEnemy = false, rightEnemy = false;
+
+                // 中心点向两边延伸一直是同颜色棋子的最远的位置
+                int leftEnd = 0, rightEnd = 0;
+
+                // 标志位 扩展两边的时候是否碰到空白 碰到空白可以继续扩展
+                int leftEmpty = 0, rightEmpty = 0;
+
+                // 计数 以pos 为中心向两边扩展，连续都是当前棋子的个数
+                int leftCount = 0, rightCount = 0;
+
+                // 计数 扩展的时候碰到空白 继续扩展碰到当前mark 的个数
+                int continueCountLeft = 0, continueCountRight = 0;
+
+                // 向一个方向扩展
+                for (int i = 1; i < 5; i++)
+                {
+                    // 越界 跳出循环
+                    if (pos.x - direction.x * i < 0 || pos.y - direction.y * i < 0 || pos.x - direction.x * i > 14 || pos.y - direction.y * i > 14)
+                    {
+                        leftBound = true;
+                        break;
+                    }
+
+                    // 扩展点仍是mark
+                    if (givenBoard[pos.x - direction.x * i, pos.y - direction.y * i] == mark)
+                    {
+                        // 未碰到过空位
+                        if (leftEmpty == 0)
+                        {
+                            leftCount++;
+                            leftEnd = i;
+                            continue;
+                        }
+                        else
+                        {
+                            continueCountLeft++;
+                            continue;
+                        }
+                    }
+                    // 扩展点不是mark，是空或对手
+                    else
+                    {
+                        leftOne = givenBoard[pos.x - direction.x * i, pos.y - direction.y * i];
+                        if (leftOne == changeMark(mark))
+                        {
+                            leftEnemy = true;
+                            break;
+                        }
+                        if (leftOne == Helper.emptyMark)
+                        {
+                            leftEmpty++;
+                            continue;
+                        }
+                    }
+                }
+
+                // 向另一个方向扩展
+                for (int i = 1; i < 5; i++)
+                {
+                    if (pos.x + direction.x * i > 14 || pos.y + direction.y * i > 14 || pos.x + direction.x * i < 0 || pos.y + direction.y * i < 0)
+                    {
+                        rightBound = true;
+                        break;
+                    }
+
+                    if (givenBoard[pos.x + direction.x * i, pos.y + direction.y * i] == mark)
+                    {
+                        if (rightEmpty == 0)
+                        {
+                            rightCount++;
+                            rightEnd = i;
+                            continue;
+                        }
+                        else
+                        {
+                            continueCountRight++;
+                            continue;
+                        }
+
+                    }
+                    else
+                    {
+                        rightOne = givenBoard[pos.x + direction.x * i, pos.y + direction.y * i];
+                        if (rightOne == changeMark(mark))
+                        {
+                            rightEnemy = true;
+                            break;
+                        }
+                        if (rightOne == Helper.emptyMark)
+                        {
+                            rightEmpty++;
+                            continue;
+                        }
+                        break;
+                    }
+                }
+
+                // 除了中心点 还有连续四个以上棋子，成五
+                if (leftCount + rightCount >= 4)
+                {
+                    if (mark == Helper.AIMark)
+                        return Helper.LEVEL1;
+                    if (mark == Helper.playerMark)
+                        return -Helper.LEVEL1;
+                }
+
+                // 四连 可能产生活四和冲四
+                else if (leftCount + rightCount == 3)
+                {
+                    // 四连 并且两边都有空白 活四
+                    if (leftEmpty > 0 && rightEmpty > 0)
+                    {
+                        four++;
+                    }
+
+                    // 冲四 四连的一边有空另一边没有空
+                    else if ((leftEmpty == 0 && rightEmpty > 0) || (leftEmpty > 0 && rightEmpty == 0))
+                    {
+                        blockfour++;
+                    }
+                }
+
+                // 三连
+                else if (leftCount + rightCount == 2)
+                {
+                    // 活三 +OOO++ leftempty 和rightempty 都大于0，表示紧跟的两边都为空（如果紧跟边界或对方棋子，则empty == 0；如果紧跟己方棋子，左右count 和会大于2；）；
+                    //9个位置中靠近中间的一段肯定是 _xxx_， 那么只要这一段的左右有一个空即可组成活三
+                    if (leftEmpty > 0 && rightEmpty > 0)
+                    {
+                        if (givenBoard[pos.x - direction.x * (leftEnd + 1), pos.y - direction.y * (leftEnd + 1)] != Helper.emptyMark ||
+                            givenBoard[pos.x + direction.x * (rightEnd + 1), pos.y + direction.y * (rightEnd + 1)] != Helper.emptyMark)
+                        {
+                            Console.WriteLine("P001 Some really bad happened !!!");
+                            return -1;
+                        }
+                        int leftX = pos.x - direction.x * (leftEnd + 2);
+                        int leftY = pos.y - direction.y * (leftEnd + 2);
+                        int rightX = pos.x + direction.x * (rightEnd + 2);
+                        int rightY = pos.y + direction.y * (rightEnd + 2);
+
+                        //+OOO+ 这一段的至少一侧有空 则组成活三；否则组成眠三（两侧都是不可落子点）；
+                        if ((isLeagal(leftX) && isLeagal(leftY) && givenBoard[leftX, leftY] == Helper.emptyMark) ||
+                            (isLeagal(rightX) && isLeagal(rightY) && givenBoard[rightX, rightY] == Helper.emptyMark))
+                        {
+                            three++;
+                        }
+                        else
+                        {
+                            blockthree++;
+                        }
+
+                    }
+
+                    // 冲四和眠三 只要其中一方向空一个之后出现己方棋子，即可组成冲四; 两个空则组成眠三
+                    // leftEmpty 和rightEmpty不同时大于0, 表示起码其中一边立刻碰到边界或对方棋子
+                    // 左侧立刻碰到边界或对方棋子，右侧是 空白+己方棋子 即可组成冲四
+                    else if (leftEmpty == 0 && rightEmpty > 0)
+                    {
+                        int rightX1 = pos.x + direction.x * (rightEnd + 1);
+                        int rightY1 = pos.y + direction.y * (rightEnd + 1);
+                        int rightX2 = pos.x + direction.x * (rightEnd + 2);
+                        int rightY2 = pos.y + direction.y * (rightEnd + 2);
+
+                        if (isLeagal(rightX1) && isLeagal(rightX2) && isLeagal(rightY1) && isLeagal(rightY2))
+                        {
+                            // 冲四 XOOO+O
+                            if (givenBoard[rightX1, rightY1] == Helper.emptyMark && givenBoard[rightX2, rightY2] == mark)
+                            {
+                                blockfour++;
+                            }
+
+                            // 眠三 XOOO++
+                            else if (givenBoard[rightX1, rightY1] == Helper.emptyMark && givenBoard[rightX2, rightY2] == Helper.emptyMark)
+                            {
+                                blockthree++;
+                            }
+                        }
+                    }
+
+
+                    else if (rightEmpty == 0 && leftEmpty > 0)
+                    {
+                        int leftX1 = pos.x - direction.x * (leftEnd + 1);
+                        int leftY1 = pos.y - direction.y * (leftEnd + 1);
+                        int leftX2 = pos.x - direction.x * (leftEnd + 2);
+                        int leftY2 = pos.y - direction.y * (leftEnd + 2);
+
+                        if (isLeagal(leftX1) && isLeagal(leftX2) && isLeagal(leftY1) && isLeagal(leftY2))
+                        {
+                            // 冲四
+                            if (givenBoard[leftX1, leftY1] == Helper.emptyMark && givenBoard[leftX2, leftY2] == mark)
+                            {
+                                blockfour++;
+                            }
+
+                            // 眠三
+                            else if (givenBoard[leftX1, leftY1] == Helper.emptyMark && givenBoard[leftX2, leftY2] == Helper.emptyMark)
+                            {
+                                blockthree++;
+                            }
+                        }
+                    }
+                }
+
+
+                // 二连
+                else if (leftCount + rightCount == 1)
+                {
+                    // 活三和眠三 +OO+
+                    if (leftEmpty > 0 && rightEmpty > 0)
+                    {
+
+                        int leftX2 = pos.x - direction.x * (leftEnd + 2);
+                        int leftY2 = pos.y - direction.y * (leftEnd + 2);
+                        int rightX2 = pos.x + direction.x * (rightEnd + 2);
+                        int rightY2 = pos.y + direction.y * (rightEnd + 2);
+
+                        int leftX3 = pos.x - direction.x * (leftEnd + 3);
+                        int leftY3 = pos.y - direction.y * (leftEnd + 3);
+                        int rightX3 = pos.x + direction.x * (rightEnd + 3);
+                        int rightY3 = pos.y + direction.y * (rightEnd + 3);
+
+
+                        // 活三 +OO+O+ +O+OO+ 二连一侧为空 另一侧为 空+己方+空
+                        if ((isLeagal(leftX2) && isLeagal(leftY2) && givenBoard[leftX2, leftY2] == mark && isLeagal(leftX3) && isLeagal(leftY3) && givenBoard[leftX3, leftY3] == Helper.emptyMark) ||
+                            (isLeagal(rightX2) && isLeagal(rightY2) && givenBoard[rightX2, rightY2] == mark && isLeagal(rightX3) && isLeagal(rightY3) && givenBoard[rightX3, rightY3] == Helper.emptyMark))
+                        {
+                            three++;
+                        }
+
+                        // 眠三 XO+OO+ 二连一侧为空，另一侧为 空+己方+壁垒
+                        if ((isLeagal(leftX2) && isLeagal(leftY2) && givenBoard[leftX2, leftY2] == mark && isBarrier(givenBoard, new Pos(leftX3, leftY3), mark)) ||
+                            (isLeagal(rightX2) && isLeagal(rightY2) && givenBoard[rightX2, rightY2] == mark && isBarrier(givenBoard, new Pos(rightX3, rightY3), mark)))
+                        {
+                            blockthree++;
+                        }
+
+                        // 活二 ++OO++ 二连两侧均有两个连续空位
+                        if (isLeagal(leftX2) && isLeagal(leftY2) && isLeagal(rightX2) && isLeagal(rightY2) && givenBoard[leftX2, leftY2] == Helper.emptyMark && givenBoard[rightX2, rightY2] == Helper.emptyMark)
+                        {
+                            two++;
+                        }
+
+                    }
+
+                    // 冲四和眠三 
+                    else if (leftEmpty == 0 && rightEmpty > 0)
+                    {
+                        int rightX1 = pos.x + direction.x * (rightEnd + 1);
+                        int rightY1 = pos.y + direction.y * (rightEnd + 1);
+                        int rightX2 = pos.x + direction.x * (rightEnd + 2);
+                        int rightY2 = pos.y + direction.y * (rightEnd + 2);
+                        int rightX3 = pos.x + direction.x * (rightEnd + 3);
+                        int rightY3 = pos.y + direction.y * (rightEnd + 3);
+
+                        // 冲四 OO+OO 二连的一侧为壁垒，另一侧为 空+己方+己方
+                        if (isLeagal(rightX1) && isLeagal(rightX2) && isLeagal(rightY1) && isLeagal(rightY2) && isLeagal(rightX3) && isLeagal(rightY3) &&
+                            givenBoard[rightX1, rightY1] == Helper.emptyMark && givenBoard[rightX2, rightY2] == mark && givenBoard[rightX3, rightY3] == mark)
+                        {
+                            blockfour++;
+                        }
+
+                        // 眠三 XOO+O+  一侧为壁垒 另一侧为 空+己方+空
+                        else if (isLeagal(rightX1) && isLeagal(rightX2) && isLeagal(rightY1) && isLeagal(rightY2) && isLeagal(rightX3) && isLeagal(rightY3) &&
+                            givenBoard[rightX1, rightY1] == Helper.emptyMark && givenBoard[rightX2, rightY2] == mark && givenBoard[rightX3, rightY3] == Helper.emptyMark)
+                        {
+                            blockthree++;
+                        }
+
+                        // 眠三 XOO++O  一侧为壁垒 另一侧为 空+空+己方
+                        else if (isLeagal(rightX1) && isLeagal(rightX2) && isLeagal(rightY1) && isLeagal(rightY2) && isLeagal(rightX3) && isLeagal(rightY3) &&
+                            givenBoard[rightX1, rightY1] == Helper.emptyMark && givenBoard[rightX2, rightY2] == Helper.emptyMark && givenBoard[rightX3, rightY3] == mark)
+                        {
+                            blockthree++;
+                        }
+
+                        // 眠二 XOO+++ 二连一侧为壁垒，另一侧为三个空位
+                        else if (isLeagal(rightX3) && isLeagal(rightY3) && givenBoard[rightX1, rightY1] == Helper.emptyMark && givenBoard[rightX2, rightY2] == Helper.emptyMark && givenBoard[rightX3, rightY3] == Helper.emptyMark)
+                        {
+                            blocktwo++;
+                        }
+                    }
+
+                    // 冲四 OO+OO 二连的一侧为壁垒，另一侧为 空+己方+己方
+                    else if (rightEmpty == 0 && leftEmpty > 0)
+                    {
+                        int leftX1 = pos.x - direction.x * (leftEnd + 1);
+                        int leftY1 = pos.y - direction.y * (leftEnd + 1);
+                        int leftX2 = pos.x - direction.x * (leftEnd + 2);
+                        int leftY2 = pos.y - direction.y * (leftEnd + 2);
+                        int leftX3 = pos.x - direction.x * (leftEnd + 3);
+                        int leftY3 = pos.y - direction.y * (leftEnd + 3);
+
+                        // 冲四
+                        if (isLeagal(leftX1) && isLeagal(leftX2) && isLeagal(leftY1) && isLeagal(leftY2) && isLeagal(leftX3) && isLeagal(leftY3) &&
+                            givenBoard[leftX1, leftY1] == Helper.emptyMark && givenBoard[leftX2, leftY2] == mark && givenBoard[leftX3, leftY3] == mark)
+                        {
+                            blockfour++;
+                        }
+
+                        // 眠三 XOO+O+  一侧为壁垒 另一侧为 空+己方+空
+                        else if (isLeagal(leftX1) && isLeagal(leftX2) && isLeagal(leftY1) && isLeagal(leftY2) && isLeagal(leftX3) && isLeagal(leftY3) &&
+                            givenBoard[leftX1, leftY1] == Helper.emptyMark && givenBoard[leftX2, leftY2] == mark && givenBoard[leftX3, leftY3] == Helper.emptyMark)
+                        {
+                            blockthree++;
+                        }
+
+                        // 眠三 XOO++O  一侧为壁垒 另一侧为 空+空+己方
+                        else if (isLeagal(leftX1) && isLeagal(leftX2) && isLeagal(leftY1) && isLeagal(leftY2) && isLeagal(leftX3) && isLeagal(leftY3) &&
+                            givenBoard[leftX1, leftY1] == Helper.emptyMark && givenBoard[leftX2, leftY2] == Helper.emptyMark && givenBoard[leftX3, leftY3] == mark)
+                        {
+                            blockthree++;
+                        }
+
+                        // 眠二 XOO+++ 二连一侧为壁垒，另一侧为三个空位
+                        else if (isLeagal(leftX3) && isLeagal(leftY3) &&
+                            givenBoard[leftX1, leftY1] == Helper.emptyMark && givenBoard[leftX2, leftY2] == Helper.emptyMark && givenBoard[leftX3, leftY3] == Helper.emptyMark)
+                        {
+                            blocktwo++;
+                        }
+                    }
+
+                }
+
+                // 当前位置左右都没有相同棋子
+                else if (leftCount + rightCount == 0)
+                {
+                    int leftX1 = pos.x - direction.x * (leftEnd + 1);
+                    int leftY1 = pos.y - direction.y * (leftEnd + 1);
+                    int leftX2 = pos.x - direction.x * (leftEnd + 2);
+                    int leftY2 = pos.y - direction.y * (leftEnd + 2);
+                    int leftX3 = pos.x - direction.x * (leftEnd + 3);
+                    int leftY3 = pos.y - direction.y * (leftEnd + 3);
+                    int leftX4 = pos.x - direction.x * (leftEnd + 4);
+                    int leftY4 = pos.y - direction.y * (leftEnd + 4);
+
+                    int rightX1 = pos.x + direction.x * (rightEnd + 1);
+                    int rightY1 = pos.y + direction.y * (rightEnd + 1);
+                    int rightX2 = pos.x + direction.x * (rightEnd + 2);
+                    int rightY2 = pos.y + direction.y * (rightEnd + 2);
+                    int rightX3 = pos.x + direction.x * (rightEnd + 3);
+                    int rightY3 = pos.y + direction.y * (rightEnd + 3);
+                    int rightX4 = pos.x + direction.x * (rightEnd + 4);
+                    int rightY4 = pos.y + direction.y * (rightEnd + 4);
+
+
+                    if (isLeagal(leftX4) && isLeagal(leftY4))
+                    {
+                        // 冲四 O+OOO 当前棋子的其中一侧是 空+己方+己方+己方
+                        if (givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                            givenBoard[leftX2, leftY2] == mark &&
+                            givenBoard[leftX3, leftY3] == mark &&
+                            givenBoard[leftX4, leftY4] == mark)
+                        {
+                            blockfour++;
+                            continue;
+                        }
+
+                        // 活三 +O+OO+ 一侧是空，另一侧是 空+己方+己方+空
+                        if (isLeagal(rightX1) && isLeagal(rightY1) && givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                            givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                            givenBoard[leftX2, leftY2] == mark &&
+                            givenBoard[leftX3, leftY3] == mark &&
+                            givenBoard[leftX4, leftY4] == Helper.emptyMark)
+                        {
+                            three++;
+                            continue;
+                        }
+
+                        // 眠三 O++OO 其中一侧是 空+空+己方+己方
+                        if (givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                            givenBoard[leftX2, leftY2] == Helper.emptyMark &&
+                            givenBoard[leftX3, leftY3] == mark &&
+                            givenBoard[leftX4, leftY4] == mark)
+                        {
+                            blockthree++;
+                            continue;
+                        }
+
+                        // 眠三 O+O+O 其中一侧是 空+己方+空+己方 即使另一侧是空也当做眠三处理
+                        if (givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                            givenBoard[leftX2, leftY2] == mark &&
+                            givenBoard[leftX3, leftY3] == Helper.emptyMark &&
+                            givenBoard[leftX4, leftY4] == mark)
+                        {
+                            blockthree++;
+                            continue;
+                        }
+
+
+
+                        // 眠三 XO+OO+ 一侧是壁垒 另一侧是 空+己方+己方+空
+                        if (isBarrier(givenBoard, new Pos(rightX1, rightY1), mark) &&
+                            givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                            givenBoard[leftX2, leftY2] == mark &&
+                            givenBoard[leftX3, leftY3] == mark &&
+                            givenBoard[leftX4, leftY4] == Helper.emptyMark)
+                        {
+                            blockthree++;
+                            continue;
+                        }
+
+                        // 眠三 +O+OOX 一侧是空 另一侧是 空+己方+己方+对方
+                        if (isLeagal(rightX1) && isLeagal(rightY1) && givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                            givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                            givenBoard[leftX2, leftY2] == mark &&
+                            givenBoard[leftX3, leftY3] == mark &&
+                            givenBoard[leftX4, leftY4] == changeMark(mark))
+                        {
+                            blockthree++;
+                            continue;
+                        }
+                    }
+
+                    // 眠三 +O+OOX 一侧是空 另一侧是 空+己方+己方+边界
+                    else if (isLeagal(leftX3) && isLeagal(leftY3))
+                    {
+                        if (isLeagal(rightX1) && isLeagal(rightY1) && givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                            givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                            givenBoard[leftX2, leftY2] == mark &&
+                            givenBoard[leftX3, leftY3] == mark)
+                        {
+                            blockthree++;
+                            continue;
+                        }
+                    }
+
+                    if (isLeagal(rightX4) && isLeagal(rightY4))
+                    {
+                        // 冲四 O+OOO 当前棋子的其中一侧是 空+己方+己方+己方
+                        if (givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                            givenBoard[rightX2, rightY2] == mark &&
+                            givenBoard[rightX3, rightY3] == mark &&
+                            givenBoard[rightX4, rightY4] == mark)
+                        {
+                            blockfour++;
+                            continue;
+                        }
+
+                        // 活三 +O+OO+ 一侧是空，另一侧是 空+己方+己方+空
+                        if (isLeagal(leftX1) && isLeagal(leftY1) && givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                            givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                            givenBoard[rightX2, rightY2] == mark &&
+                            givenBoard[rightX3, rightY3] == mark &&
+                            givenBoard[rightX4, rightY4] == Helper.emptyMark)
+                        {
+
+                            three++;
+                            continue;
+                        }
+
+
+                        // 眠三 O++OO 其中一侧是 空+空+己方+己方
+                        if (givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                            givenBoard[rightX2, rightY2] == Helper.emptyMark &&
+                            givenBoard[rightX3, rightY3] == mark &&
+                            givenBoard[rightX4, rightY4] == mark)
+                        {
+                            blockthree++;
+                            continue;
+                        }
+
+                        // 眠三 O+O+O 其中一侧是 空+己方+空+己方
+                        if (givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                            givenBoard[rightX2, rightY2] == mark &&
+                            givenBoard[rightX3, rightY3] == Helper.emptyMark &&
+                            givenBoard[rightX4, rightY4] == mark)
+                        {
+                            blockthree++;
+                            continue;
+                        }
+
+
+                        // 眠三 XO+OO+ 一侧是壁垒 另一侧是 空+己方+己方+空
+                        if (isBarrier(givenBoard, new Pos(leftX1, leftY1), mark) &&
+                            givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                            givenBoard[rightX2, rightY2] == mark &&
+                            givenBoard[rightX3, rightY3] == mark &&
+                            givenBoard[rightX4, rightY4] == Helper.emptyMark)
+                        {
+                            if (isBarrier(givenBoard, new Pos(leftX1, leftY1), mark))
+                            {
+                                blockthree++;
+                                continue;
+                            }
+
+                            else
+                            {
+                                three++;
+                                continue;
+                            }
+
+                        }
+
+                        // 眠三 +O+OOX 一侧是空 另一侧是 空+己方+己方+对方
+                        if (isLeagal(leftX1) && isLeagal(leftY1) && givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                            givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                            givenBoard[rightX2, rightY2] == mark &&
+                            givenBoard[rightX3, rightY3] == mark &&
+                            givenBoard[rightX4, rightY4] == changeMark(mark))
+                        {
+                            blockthree++;
+                            continue;
+                        }
+                    }
+
+                    // 眠三 +O+OOX 一侧是空 另一侧是 空+己方+己方+边界
+                    else if (isLeagal(rightX3) && isLeagal(rightY3))
+                    {
+                        if (isLeagal(leftX1) && isLeagal(leftY1) && givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                            givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                            givenBoard[rightX2, rightY2] == mark &&
+                            givenBoard[rightX3, rightY3] == mark)
+                        {
+                            blockthree++;
+                            continue;
+                        }
+                    }
+
+                    // 眠三 O+O+O 两侧都是 空+己方
+                    if (isLeagal(leftX2) && isLeagal(leftY2) && isLeagal(rightX2) && isLeagal(rightY2) &&
+                        givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                        givenBoard[leftX2, leftY2] == mark)
+                    {
+                        blockthree++;
+                        continue;
+                    }
+
+                    // 活二或眠二 O+O+
+                    if (isLeagal(leftX3) && isLeagal(leftY3) &&
+                        givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                        givenBoard[leftX2, leftY2] == mark &&
+                        givenBoard[leftX3, leftY3] == Helper.emptyMark)
+                    {
+                        // 眠二 XO+O+ 一侧是空 另一侧是 空+己方+空+非壁垒
+                        if (isBarrier(givenBoard, new Pos(rightX1, rightY1), mark) && !isBarrier(givenBoard, new Pos(leftX4, leftY4), mark))
+                        {
+                            blocktwo++;
+                            continue;
+                        }
+
+
+                        // 活二 +O+O+ 一侧是空 另一侧是 空+己方+空 这五个位置两侧至少有一个不是壁垒才能构成活二
+                        else if (!isBarrier(givenBoard, new Pos(rightX1, rightY1), mark) && (!isBarrier(givenBoard, new Pos(rightX2, rightY2), mark) || !isBarrier(givenBoard, new Pos(leftX4, leftY4), mark)))
+                        {
+                            two++;
+                            continue;
+                        }
+
+                    }
+
+                    // 活二或眠二 O+O+
+                    if (isLeagal(rightX3) && isLeagal(rightY3) &&
+                        givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                        givenBoard[rightX2, rightY2] == mark &&
+                        givenBoard[rightX3, rightY3] == Helper.emptyMark)
+                    {
+                        // 眠二 XO+O+ 一侧是空 另一侧是 空+己方+空+非壁垒
+                        if (isBarrier(givenBoard, new Pos(leftX1, leftY1), mark) && !isBarrier(givenBoard, new Pos(rightX4, rightY4), mark))
+                        {
+                            blocktwo++;
+                            continue;
+                        }
+
+
+                        // 活二 +O+O+ 一侧是空 另一侧是 空+己方+空 这五个位置两侧至少有一个不是壁垒才能构成活二
+                        else if (!isBarrier(givenBoard, new Pos(leftX1, leftY1), mark) && (!isBarrier(givenBoard, new Pos(leftX2, leftY2), mark) || !isBarrier(givenBoard, new Pos(rightX4, rightY4), mark)))
+                        {
+                            two++;
+                            continue;
+                        }
+
+                    }
+
+                    // 活二或眠二 O++O
+                    if (isLeagal(leftX3) && isLeagal(leftY3))
+                    {
+                        if (givenBoard[leftX1, leftY1] == Helper.emptyMark &&
+                        givenBoard[leftX2, leftY2] == Helper.emptyMark &&
+                        givenBoard[leftX3, leftY3] == mark)
+                        {
+                            if (isBarrier(givenBoard, new Pos(rightX1, rightY1), mark))
+                            {
+                                blocktwo++;
+                                continue;
+                            }
+
+                            else
+                            {
+                                two++;
+                                continue;
+                            }
+
+                        }
+                    }
+
+                    // 活二或眠二 O++O
+                    if (isLeagal(rightX3) && isLeagal(rightY3) &&
+                        givenBoard[rightX1, rightY1] == Helper.emptyMark &&
+                        givenBoard[rightX2, rightY2] == Helper.emptyMark &&
+                        givenBoard[rightX3, rightY3] == mark)
+                    {
+                        if (isBarrier(givenBoard, new Pos(leftX1, leftY1), mark))
+                        {
+                            blocktwo++;
+                            continue;
+                        }
+
+                        else
+                        {
+                            two++;
+                            continue;
+                        }
+
+                    }
+
+                    // 活一
+                    if (leftEmpty + rightEmpty > 4 && leftEmpty > 0 && rightEmpty > 0)
+                    {
+                        one++;
+                        continue;
+                    }
+
+                    // 眠一
+                    if (leftEmpty == 0 && rightEmpty >= 4 || rightEmpty == 0 && leftEmpty >= 4)
+                    {
+                        blockone++;
+                        continue;
+                    }
+
+
+
+                }
+            }
+
+            // 活四 双冲四 冲四活三
+            if (four > 0 || blockfour > 1 || (blockfour == 1 && three > 0))
+            {
+                returnValue = Helper.LEVEL2;
+            }
+
+            // 双活三
+            else if (three > 1)
+            {
+                returnValue = Helper.LEVEL3;
+            }
+
+            // 活三眠三
+            else if (three > 0 && blockthree > 0)
+            {
+                returnValue = Helper.LEVEL4;
+            }
+
+            // 冲四
+            else if (blockfour > 0)
+            {
+                returnValue = Helper.LEVEL5;
+            }
+
+            // 活三
+            else if (three > 0)
+            {
+                returnValue = Helper.LEVEL6;
+            }
+
+            // 双活二
+            else if (two > 1)
+            {
+                returnValue = Helper.LEVEL7;
+            }
+
+            // 眠三
+            else if (blockthree > 0)
+            {
+                returnValue = Helper.LEVEL8;
+            }
+
+            // 活二
+            else if (two > 0)
+            {
+                returnValue = Helper.LEVEL9;
+            }
+
+            // 眠二
+            else if (blocktwo > 0)
+            {
+                returnValue = Helper.LEVEL10;
+            }
+
+
+
+            if (mark == Helper.playerMark)
+                return -returnValue;
+            if (mark == Helper.AIMark)
+                return returnValue;
+
+            return 0;
+        }
+
+        /// <summary>
+        /// 在pos 处落子mark 的得分
         /// </summary>
         /// <param name="givenBoard"></param>
         /// <param name="pos"></param>
@@ -573,6 +1356,8 @@ namespace HakuGoCmd
             int blockthree = 0;
             int two = 0;
             int blocktwo = 0;
+            int one = 0;
+            int blockone = 0;
 
             foreach (var direction in directions)
             {
@@ -1199,6 +1984,22 @@ namespace HakuGoCmd
                         }
                             
                     }
+
+                    // 活一
+                    if(leftEmpty + rightEmpty > 4 && leftEmpty > 0 && rightEmpty > 0)
+                    {
+                        one++;
+                        continue;
+                    }
+
+                    // 眠一
+                    if(leftEmpty == 0 && rightEmpty >= 4 || rightEmpty == 0 && leftEmpty >= 4)
+                    {
+                        blockone++;
+                        continue;
+                    }
+                    
+
 
                 }
             }
