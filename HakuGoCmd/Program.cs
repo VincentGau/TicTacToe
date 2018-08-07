@@ -67,6 +67,42 @@ namespace HakuGoCmd
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
             };
 
+            testBoard = new char[15, 15] {
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 1
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 2
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 3
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 5
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
+                { '_', '_', '_', '_', '_', '_', '_', 'x', '_', '_', '_', '_', '_', '_', '_', },// 7
+                { '_', '_', '_', '_', '_', '_', 'o', 'o', '_', '_', '_', '_', '_', '_', '_', },// 8
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 9
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 10
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 11
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 12
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 13
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 14
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
+            };
+
+            testBoard = new char[15, 15] {
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 1
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 2
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 3
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
+                { '_', '_', '_', '_', 'x', 'o', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 5
+                { '_', '_', '_', '_', '_', 'o', 'x', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
+                { '_', '_', '_', '_', 'x', 'x', 'o', 'x', '_', '_', 'x', '_', '_', '_', '_', },// 7
+                { '_', '_', '_', 'o', 'o', 'x', 'o', 'o', 'x', 'o', '_', '_', '_', '_', '_', },// 8
+                { '_', '_', '_', '_', '_', '_', 'o', '_', 'o', 'x', '_', '_', '_', '_', '_', },// 9
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', 'x', 'o', '_', '_', '_', '_', },// 10
+                { '_', '_', '_', '_', '_', '_', 'o', '_', '_', 'x', '_', '_', '_', '_', '_', },// 11
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', 'x', '_', '_', '_', '_', '_', },// 12
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', },// 13
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 14
+                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
+            };
+
             bs.board = testBoard;
             bs.drawBoard();
 
@@ -548,7 +584,8 @@ namespace HakuGoCmd
 
 
         /// <summary>
-        /// 局面评分定义成所有棋子得分之和，棋子得分AI方为正，玩家方为负
+        /// 局面评分定义成所有棋子得分之和，棋子得分AI方为正，玩家方为负  deprecated
+        /// 局面评分定义成双方价值最大位置（一个为正一个为负）的和
         /// </summary>
         /// <param name="givenBoard"></param>
         /// <returns></returns>
@@ -556,20 +593,30 @@ namespace HakuGoCmd
         {
             int AIScore = 0;
             int playScore = 0;
-            for(int i = 0; i < 15; i++)
+
+            var result = checkFinished(givenBoard);
+            if (result.Count == 5)
+            {
+                if (givenBoard[result[0].x, result[0].y] == Helper.AIMark)
+                    return Helper.LEVEL1;
+                else
+                    return -Helper.LEVEL1;
+            }
+
+            for (int i = 0; i < 15; i++)
             {
                 for(int j = 0; j < 15; j++)
                 {
                     if(givenBoard[i, j] != Helper.emptyMark)
                     {
                         int value = evaluatePos(givenBoard, new Pos(i, j));
-                        if(value < 0)
+                        if(value < playScore)
                         {
-                            AIScore += value;
+                            playScore = value;
                         }
-                        if(value > 0)
+                        if(value > AIScore)
                         {
-                            playScore += value;
+                            AIScore  = value;
                         }
                     }
                 }
@@ -1470,34 +1517,42 @@ namespace HakuGoCmd
         /// <returns></returns>
         public List<Pos> topK(List<Pos> list, int K)
         {
-            List<Pos> result = new List<Pos>();
+            //List<Pos> result = new List<Pos>();
 
-            if( K >= list.Count)
+            //if( K >= list.Count)
+            //{
+            //    return list;
+            //}
+
+            //for(int i = 0; i < K; i++)
+            //{
+            //    result.Add(list[i]);
+            //}
+
+            //buildMinHeap(result);
+
+            //for(int j = K; j < list.Count; j++)
+            //{
+            //    var pos = list[j];
+            //    var minPos = result[0];
+            //    int value = evaluate(board, pos);
+            //    int min = evaluate(board, minPos);
+
+            //    if(value > min)
+            //    {
+            //        result[0] = pos;
+            //        heapifyMin(result, 0, K);
+            //    }
+            //}
+
+            //return result;
+
+            if (K >= list.Count)
             {
                 return list;
             }
-
-            for(int i = 0; i < K; i++)
-            {
-                result.Add(list[i]);
-            }
-
-            buildMinHeap(result);
-
-            for(int j = K; j < list.Count; j++)
-            {
-                var pos = list[j];
-                var minPos = result[0];
-                int value = evaluate(board, pos);
-                int min = evaluate(board, minPos);
-
-                if(value > min)
-                {
-                    result[0] = pos;
-                    heapifyMin(result, 0, K);
-                }
-            }
-
+            heapSort(list);
+            var result = list.GetRange(list.Count - K, K);
             return result;
         }
 
@@ -1509,35 +1564,55 @@ namespace HakuGoCmd
         /// <returns></returns>
         public List<Pos> MinK(List<Pos> list, int K)
         {
-            List<Pos> result = new List<Pos>();
+            //List<Pos> result = new List<Pos>();
+
+            //if (K >= list.Count)
+            //{
+            //    return list;
+            //}
+
+            //for (int i = 0; i < K; i++)
+            //{
+            //    result.Add(list[i]);
+            //}
+
+            //buildMaxHeap(result);
+
+            //for (int j = K; j < list.Count; j++)
+            //{
+            //    var pos = list[j];
+            //    var minPos = result[0];
+            //    int value = evaluate(board, pos);
+            //    int min = evaluate(board, minPos);
+
+            //    if (value < min)
+            //    {
+            //        result[0] = pos;
+            //        heapifyMax(result, 0, K);
+            //    }
+            //}
+
+            //return result;
 
             if (K >= list.Count)
             {
                 return list;
             }
 
-            for (int i = 0; i < K; i++)
+            heapSort(list);
+            return list.GetRange(0, K);
+        }
+
+        public void heapSort(List<Pos> list)
+        {
+            buildMaxHeap(list);
+            for (int i = list.Count - 1; i > 0; i--)
             {
-                result.Add(list[i]);
+                var temp = list[0];
+                list[0] = list[i];
+                list[i] = temp;
+                heapifyMax(list, 0, i);
             }
-
-            buildMaxHeap(result);
-
-            for (int j = K; j < list.Count; j++)
-            {
-                var pos = list[j];
-                var minPos = result[0];
-                int value = evaluate(board, pos);
-                int min = evaluate(board, minPos);
-
-                if (value < min)
-                {
-                    result[0] = pos;
-                    heapifyMax(result, 0, K);
-                }
-            }
-
-            return result;
         }
 
         /// <summary>
