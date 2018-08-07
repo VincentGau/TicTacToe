@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -75,7 +76,7 @@ namespace HakuGoCmd
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 5
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
                 { '_', '_', '_', '_', '_', '_', '_', 'x', '_', '_', '_', '_', '_', '_', '_', },// 7
-                { '_', '_', '_', '_', '_', '_', 'o', 'o', '_', '_', '_', '_', '_', '_', '_', },// 8
+                { '_', '_', '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', '_', },// 8
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 9
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 10
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 11
@@ -85,23 +86,23 @@ namespace HakuGoCmd
                 { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
             };
 
-            testBoard = new char[15, 15] {
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 1
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 2
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 3
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
-                { '_', '_', '_', '_', 'x', 'o', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 5
-                { '_', '_', '_', '_', '_', 'o', 'x', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
-                { '_', '_', '_', '_', 'x', 'x', 'o', 'x', '_', '_', 'x', '_', '_', '_', '_', },// 7
-                { '_', '_', '_', 'o', 'o', 'x', 'o', 'o', 'x', 'o', '_', '_', '_', '_', '_', },// 8
-                { '_', '_', '_', '_', '_', '_', 'o', '_', 'o', 'x', '_', '_', '_', '_', '_', },// 9
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', 'x', 'o', '_', '_', '_', '_', },// 10
-                { '_', '_', '_', '_', '_', '_', 'o', '_', '_', 'x', '_', '_', '_', '_', '_', },// 11
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', 'x', '_', '_', '_', '_', '_', },// 12
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', },// 13
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 14
-                { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
-            };
+            //testBoard = new char[15, 15] {
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 1
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 2
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 3
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 4
+            //    { '_', '_', '_', '_', 'x', 'o', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 5
+            //    { '_', '_', '_', '_', '_', 'o', 'x', '_', '_', '_', '_', '_', '_', '_', '_', },// 6
+            //    { '_', '_', '_', '_', 'x', 'x', 'o', 'x', '_', '_', 'x', '_', '_', '_', '_', },// 7
+            //    { '_', '_', '_', 'o', 'o', 'x', 'o', 'o', 'x', 'o', '_', '_', '_', '_', '_', },// 8
+            //    { '_', '_', '_', '_', '_', '_', 'o', '_', 'o', 'x', '_', '_', '_', '_', '_', },// 9
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', 'x', 'o', '_', '_', '_', '_', },// 10
+            //    { '_', '_', '_', '_', '_', '_', 'o', '_', '_', 'x', '_', '_', '_', '_', '_', },// 11
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', 'x', '_', '_', '_', '_', '_', },// 12
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', 'o', '_', '_', '_', '_', '_', },// 13
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 14
+            //    { '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', '_', },// 15
+            //};
 
             bs.board = testBoard;
             bs.drawBoard();
@@ -131,6 +132,9 @@ namespace HakuGoCmd
 
             while (true)
             {
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+
                 // <winningPath> store the five positions if one has won;
                 // empty is the game is not finished yet;
                 // store Pos(99,99) is game is over and there is a tie;
@@ -142,7 +146,8 @@ namespace HakuGoCmd
                     Pos inputPos = bs.getInputPos();
                     bs.updateBoard(inputPos, Helper.playerMark);
                     bs.drawBoard();
-                    Console.WriteLine(bs.minimax());
+                    //Console.WriteLine(bs.minimax());
+                    bs.minimax();
                     bs.move();
                 }
                 else
@@ -163,6 +168,10 @@ namespace HakuGoCmd
                         break;
                     }
                 }
+
+                sw.Stop();
+                TimeSpan ts = sw.Elapsed;
+                Console.WriteLine("Time Used：{0}ms", ts.TotalMilliseconds);
             }
         }
     }
@@ -189,7 +198,8 @@ namespace HakuGoCmd
         public int alpha { get; set; }
         public int beta { get; set; }
         public int winner { get; set; }
-        public BoardState nextMove { get; set; }
+        public BoardState nextState { get; set; }
+        public Pos nextMove { get; set; }
 
         public BoardState(char[,] board, int turn, int depth, int alpha, int beta)
         {
@@ -315,7 +325,7 @@ namespace HakuGoCmd
                         //childScore = evaluateOneSide(board, move, Helper.playerMark) - depth;
                         childScore = evaluateBoard(childState.board);
 
-                        nextMove = childState;
+                        nextState = childState;
                         //return childScore;
                     }
                     else
@@ -328,7 +338,8 @@ namespace HakuGoCmd
                     {
                         maxInChild = childScore;
                         alpha = maxInChild;
-                        nextMove = childState;
+                        nextState = childState;
+                        nextMove = move;
                     }
 
                     if (alpha >= beta)
@@ -353,7 +364,7 @@ namespace HakuGoCmd
                         //childScore = evaluateOneSide(board, move, Helper.AIMark) + depth;
                         childScore = evaluateBoard(childState.board);
                         
-                        nextMove = childState;
+                        nextState = childState;
                         //return childScore;
                     }
 
@@ -367,7 +378,8 @@ namespace HakuGoCmd
                     {
                         minInChild = childScore;
                         beta = minInChild;
-                        nextMove = childState;
+                        nextState = childState;
+                        nextMove = move;
                     }
 
                     if (alpha >= beta)
@@ -1501,11 +1513,15 @@ namespace HakuGoCmd
         /// <returns></returns>
         public List<Pos> shrinkAvailableMoves(List<Pos> rawAvailableMoves, int sizeAfter, char mark)
         {
-            //if (mark == Helper.AIMark)
-            //    return topK(rawAvailableMoves, sizeAfter);
-            //else
-            //    return MinK(rawAvailableMoves, sizeAfter);
-            return topK(rawAvailableMoves, sizeAfter);
+            if (mark == Helper.AIMark)
+                return topK(rawAvailableMoves, sizeAfter);
+            else
+                return MinK(rawAvailableMoves, sizeAfter);
+
+            //var test1 = topK(rawAvailableMoves, sizeAfter);
+            //var test2 = MinK(rawAvailableMoves, sizeAfter);
+
+            //return topK(rawAvailableMoves, sizeAfter);
         }
 
 
@@ -1553,6 +1569,7 @@ namespace HakuGoCmd
             }
             heapSort(list);
             var result = list.GetRange(list.Count - K, K);
+            result.Reverse();
             return result;
         }
 
@@ -1650,11 +1667,7 @@ namespace HakuGoCmd
             int left = 2 * index + 1;
             int right = 2 * index + 2;
             int min = index;
-
-
-            //int leftValue = evaluate(board, list[left], turn);
-            //int rightValue = evaluate(board, list[right], turn);
-            //int minValue = evaluate(board, list[min], turn);
+            
 
             if (left < size && evaluate(board, list[left]) < evaluate(board, list[min]))
             {
@@ -1688,11 +1701,7 @@ namespace HakuGoCmd
             int right = 2 * index + 2;
             int max = index;
 
-
-            //int leftValue = evaluate(board, list[left], turn);
-            //int rightValue = evaluate(board, list[right], turn);
-            //int minValue = evaluate(board, list[min], turn);
-
+            
             if (left < size && evaluate(board, list[left]) > evaluate(board, list[max]))
             {
                 max = left;
@@ -1714,7 +1723,13 @@ namespace HakuGoCmd
         }
 
 
-
+        /// <summary>
+        /// 判断某点是否存在邻居，这是判断可行点的基本条件
+        /// </summary>
+        /// <param name="i"></param>
+        /// <param name="j"></param>
+        /// <param name="neighborRange"></param>
+        /// <returns></returns>
         public bool hasNeighbor(int i, int j, int neighborRange)
         {
             int leftbound = (j - neighborRange) > 0 ? (j - neighborRange) : 0;
@@ -1742,8 +1757,9 @@ namespace HakuGoCmd
         /// </summary>
         public void move()
         {
-            board = nextMove.board;
+            board = nextState.board;
             drawBoard();
+            Console.WriteLine("Move: {0}-{1}", nextMove.x, nextMove.y);
         }
 
         //  TODO
